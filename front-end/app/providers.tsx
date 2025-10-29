@@ -14,9 +14,12 @@ export function Providers(props: { children: ReactNode }) {
   }, []);
 
   const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
-  const solanaMainnetRpc = process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com";
+  
+  const solanaMainnetRpc = process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL || "";
+  const solanaDevnetRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "";
+  const solanaMainnetWs = solanaMainnetRpc.replace(/^http/, "ws").replace(/^https/, "wss");
+  const solanaDevnetWs = solanaDevnetRpc.replace(/^http/, "ws").replace(/^https/, "wss");
 
-  // Usar useMemo para só calcular os connectors após mount
   const solanaConnectors = useMemo(() => {
     if (!mounted) {
       return undefined;
@@ -45,7 +48,7 @@ export function Providers(props: { children: ReactNode }) {
       appId={privyAppId}
       config={{
         embeddedWallets: {
-          showWalletUIs: true, // Habilitar modais de confirmação da wallet
+          showWalletUIs: true,
           solana: {
             createOnLogin: "all-users",
           },
@@ -67,15 +70,11 @@ export function Providers(props: { children: ReactNode }) {
           rpcs: {
             "solana:mainnet": {
               rpc: createSolanaRpc(solanaMainnetRpc),
-              rpcSubscriptions: createSolanaRpcSubscriptions(
-                solanaMainnetRpc.replace(/^http/, "ws") // trocar protocolo para ws se for http-url
-              ),
+              rpcSubscriptions: createSolanaRpcSubscriptions(solanaMainnetWs),
             },
             "solana:devnet": {
-              rpc: createSolanaRpc("https://api.devnet.solana.com"),
-              rpcSubscriptions: createSolanaRpcSubscriptions(
-                "wss://api.devnet.solana.com"
-              ),
+              rpc: createSolanaRpc(solanaDevnetRpc),
+              rpcSubscriptions: createSolanaRpcSubscriptions(solanaDevnetWs),
             },
           },
         },

@@ -1,13 +1,15 @@
 import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import idl from './idl.json';
+import { getSolanaRpcUrl } from './solana-config';
 
 export const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3');
 export const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
-export const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 
+// Usar configuração centralizada para garantir consistência com Privy
 export function getConnection() {
-  return new Connection(RPC_URL, 'confirmed');
+  const rpcUrl = getSolanaRpcUrl();
+  return new Connection(rpcUrl, 'confirmed');
 }
 
 export function getProgram(wallet: any) {

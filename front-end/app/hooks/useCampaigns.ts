@@ -82,6 +82,7 @@ export function useCampaigns() {
   const {
     publicKey,
     isConnected,
+    isReady,
     user,
     anchorWallet,
     sendTransaction,
@@ -183,6 +184,10 @@ export function useCampaigns() {
         return { success: false, error: "Wallet not connected" };
       }
 
+      if (!isReady) {
+        return { success: false, error: "Wallet is not ready yet. Please wait for initialization." };
+      }
+
       try {
         const createdAt = Math.floor(Date.now() / 1000);
         const deadlineTs = createdAt + params.durationDays * 24 * 60 * 60;
@@ -233,7 +238,9 @@ export function useCampaigns() {
 
         const connection = getConnection();
         tx.feePayer = publicKey;
-        const { blockhash } = await connection.getLatestBlockhash();
+        
+        // Obter blockhash inicial (será atualizado com um fresco em usePrivyWallet se necessário)
+        const { blockhash } = await connection.getLatestBlockhash('confirmed');
         tx.recentBlockhash = blockhash;
 
         if (!sendTransaction) {
@@ -245,7 +252,8 @@ export function useCampaigns() {
           verifySignatures: false,
         });
 
-        // sendTransaction apenas aceita a transação serializada
+        // sendTransaction atualizará o blockhash com um fresco antes de enviar
+        // Isso evita erros de "Blockhash not found" se houver delay entre criação e envio
         const result = await sendTransaction(serializedTx);
 
         const signature =

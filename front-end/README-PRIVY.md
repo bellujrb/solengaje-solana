@@ -10,13 +10,53 @@ Crie um arquivo `.env.local` na raiz do projeto `front-end/` com as seguintes va
 # Privy Configuration
 NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id_here
 
-# Solana Configuration
-NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+# Solana Network Configuration
+# Valores aceitos: 'devnet' ou 'mainnet-beta'
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+
+# Solana RPC URLs
+# IMPORTANTE: Use endpoints que suportam requisições via browser (sem bloqueio CORS)
+# Para devnet, configurado para usar RPC pool customizado
+# Se não especificado, usa: https://supertea-solanan-66b1.devnet.rpcpool.com/d914275f-7a7d-491c-9f0e-61cb6466f39a
+NEXT_PUBLIC_SOLANA_RPC_URL=https://supertea-solanan-66b1.devnet.rpcpool.com/d914275f-7a7d-491c-9f0e-61cb6466f39a
+
+# Para mainnet, use um serviço RPC confiável:
+# - https://api.mainnet-beta.solana.com (público, pode ter rate limits)
+# - Helius, Triton, QuickNode, Chainstack (recomendado para produção)
 NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL=https://api.mainnet-beta.solana.com
 
 # Program Configuration
 NEXT_PUBLIC_INFLUNEST_PROGRAM_ID=DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3
 NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+```
+
+## Configuração de RPC
+
+**IMPORTANTE**: O projeto usa configuração centralizada de rede Solana em `app/lib/solana-config.ts`. Isso garante que:
+- Todas as conexões (Privy, Anchor, Connection direta) usem a mesma rede
+- O parâmetro `chain` esteja correto nas transações do Privy
+- Não haja inconsistências entre rede configurada e rede usada
+
+### Recomendações de RPC
+
+Para evitar erros 403 (forbidden) e bloqueios de CORS:
+
+**Devnet (desenvolvimento)**:
+- Padrão: `https://supertea-solanan-66b1.devnet.rpcpool.com/d914275f-7a7d-491c-9f0e-61cb6466f39a`
+- Alternativas: Helius Devnet, QuickNode Devnet, ou outros serviços com suporte a browser
+
+**Mainnet (produção)**:
+- **NÃO use** o endpoint público sem proxy/proxy reverso
+- Use serviços pagos com suporte a browser:
+  - [Helius](https://www.helius.dev/) - RPC API com plano gratuito
+  - [QuickNode](https://www.quicknode.com/) - Solana RPC
+  - [Triton](https://triton.one/) - Solana RPC
+  - [Chainstack](https://chainstack.com/) - Solana RPC
+
+Exemplo com Helius:
+```env
+NEXT_PUBLIC_SOLANA_RPC_URL=https://devnet.helius-rpc.com/?api-key=YOUR_API_KEY
+NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY
 ```
 
 ## Configuração

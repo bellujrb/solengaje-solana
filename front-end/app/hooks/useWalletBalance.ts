@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { usePrivyWallet } from "./usePrivyWallet";
 import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { getSolanaRpcUrl } from "../lib/solana-config";
 
 const SOL_PRICE_API = "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd";
-const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 
 export function useWalletBalance() {
   const [balance, setBalance] = useState<number>(0);
@@ -59,7 +59,9 @@ export function useWalletBalance() {
         if (showLoading) {
           setIsLoading(true);
         }
-        const connection = new Connection(RPC_URL, 'confirmed');
+        // Usar configuração centralizada para garantir consistência com Privy
+        const rpcUrl = getSolanaRpcUrl();
+        const connection = new Connection(rpcUrl, 'confirmed');
         const lamports = await connection.getBalance(publicKey);
         const solBalance = lamports / LAMPORTS_PER_SOL;
         setBalance(solBalance);

@@ -2,9 +2,10 @@
 
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets as useSolanaWallets, useSignAndSendTransaction, useSignTransaction } from "@privy-io/react-auth/solana";
-import { PublicKey, Transaction, Connection } from "@solana/web3.js";
+import { PublicKey, Transaction, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useMemo } from "react";
 import { getConnection } from "../lib/anchor";
+import { getSolanaNetworkKey } from "../lib/solana-config";
 
 export function usePrivyWallet() {
   const { authenticated, user, ready } = usePrivy();
@@ -111,11 +112,19 @@ export function usePrivyWallet() {
     };
   }, [publicKey, solanaWallet]);
 
+  // Obter a chave da rede atual
+  const networkKey = getSolanaNetworkKey();
+
   // Wrapper para sendTransaction que usa a wallet Solana correta
   const sendTransaction = useMemo(() => {
-    if (!solanaWallet) return undefined;
+    if (!solanaWallet || !ready) return undefined;
     
     return async (serializedTx: Uint8Array | Buffer) => {
+      // Verificar novamente que está pronto antes de executar
+      if (!ready) {
+        throw new Error('Wallet is not ready yet. Please wait for initialization.');
+      }
+      
       if (!solanaWallet.address) {
         throw new Error('No wallet address found');
       }
@@ -126,45 +135,78 @@ export function usePrivyWallet() {
         : Buffer.from(serializedTx);
       
       try {
-        // Tentar primeiro usar signTransaction + enviar manualmente (evita funding)
+        // Converter para Transaction e obter blockhash fresco
+        const connection = getConnection();
+        const tx = Transaction.from(txBuffer);
+        const walletPublicKey = new PublicKey(solanaWallet.address);
+        
+        // Obter blockhash fresco para evitar "Blockhash not found"
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+        tx.recentBlockhash = blockhash;
+        
+        // Se a transação tem fee payer definido, garantir que está correto
+        if (!tx.feePayer) {
+          tx.feePayer = walletPublicKey;
+        }
+        
+        // Reserializar a transação com blockhash fresco
+        const freshSerializedTx = tx.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        });
+        
         if (signTransaction) {
           try {
-            console.log('Using signTransaction + manual send');
-            // Converter para Transaction
-            const tx = Transaction.from(txBuffer);
-            
-            // Assinar a transação
             const signedResult = await signTransaction({
-              transaction: txBuffer,
+              transaction: freshSerializedTx,
               wallet: solanaWallet,
+              chain: networkKey, 
             });
             
-            // Enviar a transação assinada manualmente
-            const connection = getConnection();
             const signature = await connection.sendRawTransaction(
               signedResult.signedTransaction,
-              { skipPreflight: false }
+              { 
+                skipPreflight: false,
+                maxRetries: 3,
+              }
             );
+            
+            await connection.confirmTransaction({
+              signature,
+              blockhash,
+              lastValidBlockHeight,
+            }, 'confirmed');
             
             console.log('Transaction sent with signature:', signature);
             return signature;
           } catch (signError: any) {
+            const errorMessage = signError?.message || String(signError);
+            if (
+              errorMessage.includes('Attempt to debit an account but found no record of a prior credit') ||
+              errorMessage.includes('insufficient funds') ||
+              errorMessage.includes('InsufficientFunds') ||
+              errorMessage.includes('insufficient balance')
+            ) {
+              const balance = await connection.getBalance(walletPublicKey);
+              const balanceInSol = balance / LAMPORTS_PER_SOL;
+              throw new Error(
+                `Saldo insuficiente para completar a transação. Você precisa de SOL suficiente para pagar as taxas. Saldo atual: ${balanceInSol.toFixed(6)} SOL. Por favor, adicione SOL à sua wallet.`
+              );
+            }
+            
             console.warn('signTransaction + manual send failed, trying signAndSendTransaction:', signError.message);
-            // Fall through para signAndSendTransaction
           }
         }
         
-        // Se signTransaction não funcionar, tentar signAndSendTransaction
-        // Note: pode dar erro de funding se não estiver habilitado
         if (signAndSendTransaction) {
           try {
             console.log('Using signAndSendTransaction');
             const result = await signAndSendTransaction({
-              transaction: txBuffer,
+              transaction: freshSerializedTx,
               wallet: solanaWallet,
+              chain: networkKey, 
             });
             
-            // Resultado pode ser Uint8Array ou objeto com signature
             if (result?.signature) {
               const sig = result.signature;
               return Buffer.from(sig).toString('base64');
@@ -172,7 +214,21 @@ export function usePrivyWallet() {
             return typeof result === 'string' ? result : String(result);
           } catch (sendError: any) {
             console.error('signAndSendTransaction failed:', sendError);
-            // Se der erro de funding, não há muito o que fazer além de lançar o erro
+            
+            const errorMessage = sendError?.message || String(sendError);
+            if (
+              errorMessage.includes('Attempt to debit an account but found no record of a prior credit') ||
+              errorMessage.includes('insufficient funds') ||
+              errorMessage.includes('InsufficientFunds') ||
+              errorMessage.includes('insufficient balance')
+            ) {
+              const balance = await connection.getBalance(walletPublicKey);
+              const balanceInSol = balance / LAMPORTS_PER_SOL;
+              throw new Error(
+                `Saldo insuficiente para completar a transação. Você precisa de SOL suficiente para pagar as taxas. Saldo atual: ${balanceInSol.toFixed(6)} SOL. Por favor, adicione SOL à sua wallet.`
+              );
+            }
+            
             throw sendError;
           }
         }
@@ -183,7 +239,7 @@ export function usePrivyWallet() {
         throw error;
       }
     };
-  }, [solanaWallet, signTransaction, signAndSendTransaction]);
+  }, [solanaWallet, signTransaction, signAndSendTransaction, ready, networkKey]);
 
   return {
     publicKey,
