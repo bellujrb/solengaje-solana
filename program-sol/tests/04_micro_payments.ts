@@ -21,14 +21,11 @@ import { Solengage } from "../target/types/solengage";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import { getAccount, getOrCreateAssociatedTokenAccount, createMint, TOKEN_PROGRAM_ID, mintTo } from "@solana/spl-token";
 import { expect } from "chai";
-import idl from "../target/idl/solengage.json";
 
 describe("Solengage - 04 Micro Payments", () => {
-  // Configure the client to use the devnet cluster
   anchor.setProvider(anchor.AnchorProvider.env());
+  const program = anchor.workspace.solengage as Program<Solengage>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
-  const programId = new anchor.web3.PublicKey("HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg");
-  const program = new anchor.Program(idl as any, programId, provider) as Program<Solengage>;
 
   let influencer: Keypair, brand: Keypair, oracle: Keypair;
   let usdcMint: PublicKey;
@@ -64,7 +61,7 @@ describe("Solengage - 04 Micro Payments", () => {
     await mintTo(provider.connection, brand, usdcMint, brandUsdcAccount, brand, totalAmount.muln(2).toNumber());
 
     await program.methods
-      .createCampaign(campaignName, "Brand", "#micropayments", targetLikes, new anchor.BN(0), new anchor.BN(0), new anchor.BN(0), totalAmount, new anchor.BN(Date.now() / 1000 + 86400))
+      .createCampaign(campaignName, "test-nickname", "Brand", "#micropayments", targetLikes, new anchor.BN(0), new anchor.BN(0), new anchor.BN(0), totalAmount, new anchor.BN(Date.now() / 1000 + 86400))
       .accounts({ campaign: campaignPda, influencer: influencer.publicKey, brand: brand.publicKey, oracle: oracle.publicKey, systemProgram: SystemProgram.programId })
       .signers([influencer])
       .rpc();

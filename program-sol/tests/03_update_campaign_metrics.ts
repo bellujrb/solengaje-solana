@@ -31,14 +31,11 @@ import {
   mintTo
 } from "@solana/spl-token";
 import { expect } from "chai";
-import idl from "../target/idl/solengage.json";
 
 describe("Solengage - 03 Update Campaign Metrics", () => {
-  // Configure the client to use the devnet cluster
   anchor.setProvider(anchor.AnchorProvider.env());
+  const program = anchor.workspace.solengage as Program<Solengage>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
-  const programId = new anchor.web3.PublicKey("HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg");
-  const program = new anchor.Program(idl as any, programId, provider) as Program<Solengage>;
 
   // Accounts
   let influencer: Keypair, brand: Keypair, oracle: Keypair;
@@ -81,7 +78,7 @@ describe("Solengage - 03 Update Campaign Metrics", () => {
     // Create Campaign
     await program.methods
       .createCampaign(
-        campaignName, "Brand", "#metrics", targetLikes, new anchor.BN(0), new anchor.BN(0), new anchor.BN(0),
+        campaignName, "test-nickname", "Brand", "#metrics", targetLikes, new anchor.BN(0), new anchor.BN(0), new anchor.BN(0),
         totalAmount, new anchor.BN(Date.now() / 1000 + 86400)
       )
       .accounts({ 

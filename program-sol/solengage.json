@@ -219,6 +219,10 @@
           "type": "string"
         },
         {
+          "name": "nickname",
+          "type": "string"
+        },
+        {
           "name": "brand_name",
           "type": "string"
         },
@@ -369,76 +373,81 @@
     },
     {
       "code": 6002,
+      "name": "NicknameTooLong",
+      "msg": "Nickname is too long (max 50 characters)."
+    },
+    {
+      "code": 6003,
       "name": "BrandNameTooLong",
       "msg": "Brand name is too long (max 50 characters)."
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "HashtagTooLong",
       "msg": "Hashtag is too long (max 50 characters)."
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "InvalidAmount",
       "msg": "Amount must be greater than 0."
     },
     {
-      "code": 6005,
+      "code": 6006,
       "name": "InvalidDeadline",
       "msg": "Deadline must be in the future."
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "NoTargetsSet",
       "msg": "At least one target metric must be set."
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "CampaignNotDraft",
       "msg": "Campaign is not in draft status."
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "CampaignExpired",
       "msg": "Campaign has expired."
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "CampaignNotActive",
       "msg": "Campaign is not active."
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "UnauthorizedBrand",
       "msg": "You are not the authorized brand for this campaign."
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "CampaignAlreadyCompleted",
       "msg": "Campaign is already completed."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "MathOverflow",
       "msg": "Math overflow occurred."
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "InvalidMilestone",
       "msg": "Invalid payment milestone."
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "PaymentAlreadyProcessed",
       "msg": "Payment already processed for this milestone."
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "InsufficientFunds",
       "msg": "Insufficient funds for payment."
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "PaymentExceedsBudget",
       "msg": "Payment amount exceeds campaign budget."
     }
@@ -459,6 +468,10 @@
           },
           {
             "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "nickname",
             "type": "string"
           },
           {

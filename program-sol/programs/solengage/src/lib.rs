@@ -10,6 +10,7 @@ pub mod solengage {
     pub fn create_campaign(
         ctx: Context<CreateCampaign>,
         name: String,
+        nickname: String,
         brand_name: String,
         hashtag: String,
         target_likes: u64,
@@ -21,6 +22,7 @@ pub mod solengage {
     ) -> Result<()> {
         // Validações de segurança
         require!(name.len() <= 50, ErrorCode::NameTooLong);
+        require!(nickname.len() <= 50, ErrorCode::NicknameTooLong);
         require!(brand_name.len() <= 50, ErrorCode::BrandNameTooLong);
         require!(hashtag.len() <= 50, ErrorCode::HashtagTooLong);
         require!(amount_usdc > 0, ErrorCode::InvalidAmount);
@@ -34,6 +36,7 @@ pub mod solengage {
         campaign.influencer = ctx.accounts.influencer.key();
         campaign.brand = ctx.accounts.brand.key();
         campaign.name = name;
+        campaign.nickname = nickname;
         campaign.brand_name = brand_name;
         campaign.hashtag = hashtag;
         campaign.target_likes = target_likes;
@@ -266,6 +269,8 @@ pub struct Campaign {
     #[max_len(50)]
     pub name: String,
     #[max_len(50)]
+    pub nickname: String,
+    #[max_len(50)]
     pub brand_name: String,
     #[max_len(50)]
     pub hashtag: String,
@@ -289,7 +294,7 @@ pub struct Campaign {
 }
 
 impl Campaign {
-    pub const INIT_SPACE: usize = 8 + 32 + 32 + (4 + 50) + (4 + 50) + (4 + 50) + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + (1 + 1) + 8 + 32 + 8 + 8 + (1 * 10); // Adjusted for new fields
+    pub const INIT_SPACE: usize = 8 + 32 + 32 + (4 + 50) + (4 + 50) + (4 + 50) + (4 + 50) + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + (1 + 1) + 8 + 32 + 8 + 8 + (1 * 10); // Adjusted for new fields
     
     pub fn get_progress_percentage(&self) -> u64 {
         let mut total_target = 0;
@@ -395,6 +400,8 @@ pub enum ErrorCode {
     UnauthorizedOracle,
     #[msg("Campaign name is too long (max 50 characters).")]
     NameTooLong,
+    #[msg("Nickname is too long (max 50 characters).")]
+    NicknameTooLong,
     #[msg("Brand name is too long (max 50 characters).")]
     BrandNameTooLong,
     #[msg("Hashtag is too long (max 50 characters).")]

@@ -12,8 +12,8 @@ solengage = "HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "https://supertea-solanan-66b1.devnet.rpcpool.com/d914275f-7a7d-491c-9f0e-61cb6466f39a"
-wallet = "/Users/olivmath/.config/solana/devnet.json"
+cluster = "localnet"
+wallet = "/Users/olivmath/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
