@@ -249,6 +249,6 @@ export function usePrivyWallet() {
     user,
     anchorWallet,
     sendTransaction,
-    solanaWallet, // Exportar também para referência
+    solanaWallet, 
   };
 }

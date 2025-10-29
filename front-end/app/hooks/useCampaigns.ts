@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { BN, Program, AnchorProvider } from "@coral-xyz/anchor";
-import { getConnection } from "../lib/anchor";
+import { getConnection, PROGRAM_ID } from "../lib/anchor";
 import { usePrivyWallet } from "./usePrivyWallet";
 import {
   convertMultipleCampaigns,
@@ -70,7 +70,15 @@ function getProgram(anchorWallet: any): Program {
     skipPreflight: false,
   });
 
-  return new Program(idl as any, provider);  // sem programId aqui
+  // Criar uma cópia profunda do IDL e atualizar o address com o programId correto
+  // O Anchor verifica se o address no IDL corresponde ao programId usado na instrução
+  const idlWithProgramId = JSON.parse(JSON.stringify(idl));
+  idlWithProgramId.address = PROGRAM_ID.toBase58();
+  
+  console.log('Creating Program with IDL address:', idlWithProgramId.address);
+  console.log('Expected PROGRAM_ID:', PROGRAM_ID.toBase58());
+
+  return new Program(idlWithProgramId as any, provider);
 }
 
 
@@ -189,14 +197,17 @@ export function useCampaigns() {
       }
 
       try {
+        // Validar amountUsdc antes de usar
+        if (isNaN(params.amountUsdc) || params.amountUsdc <= 0) {
+          return {
+            success: false,
+            error: `Valor inválido: ${params.amountUsdc}. Por favor, informe um valor válido para o orçamento.`,
+          };
+        }
+
         const createdAt = Math.floor(Date.now() / 1000);
         const deadlineTs = createdAt + params.durationDays * 24 * 60 * 60;
-        const amountUsdcBN = new BN(params.amountUsdc * 1_000_000);
-
-        const PROGRAM_ID = new PublicKey(
-          process.env.NEXT_PUBLIC_INFLUNEST_PROGRAM_ID ||
-            "DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3"
-        );
+        const amountUsdcBN = new BN(Math.floor(params.amountUsdc * 1_000_000));
         const [campaignPDA, bump] = PublicKey.findProgramAddressSync(
           [
             Buffer.from("campaign"),
@@ -215,6 +226,14 @@ export function useCampaigns() {
         });
 
         const program = getProgram(anchorWallet!);
+
+        // Verificar se o programId do program corresponde ao PROGRAM_ID esperado
+        const programProgramId = program.programId.toBase58();
+        const expectedProgramId = PROGRAM_ID.toBase58();
+        
+        if (programProgramId !== expectedProgramId) {
+          console.warn(`Program ID mismatch: expected ${expectedProgramId}, got ${programProgramId}`);
+        }
 
         const tx: Transaction = await program.methods
           .createCampaign(
@@ -236,8 +255,47 @@ export function useCampaigns() {
           })
           .transaction();
 
+        // Verificar qual programId está realmente sendo usado na instrução
+        if (tx.instructions.length > 0) {
+          const firstInstruction = tx.instructions[0];
+          const instructionProgramId = firstInstruction.programId.toBase58();
+          console.log('Program ID na instrução da transação:', instructionProgramId);
+          console.log('Program ID esperado:', PROGRAM_ID.toBase58());
+          console.log('Program ID do objeto Program:', program.programId.toBase58());
+          
+          if (instructionProgramId !== PROGRAM_ID.toBase58()) {
+            return {
+              success: false,
+              error: `Program ID mismatch na transação. Instrução usa: ${instructionProgramId}, mas esperado: ${PROGRAM_ID.toBase58()}. Por favor, verifique se o programa está deployado com o programId correto ou atualize NEXT_PUBLIC_PROGRAM_ID.`,
+            };
+          }
+        }
+
         const connection = getConnection();
         tx.feePayer = publicKey;
+        
+        // Tentar verificar se o programa existe no programId especificado
+        try {
+          const programInfo = await connection.getAccountInfo(PROGRAM_ID);
+          if (!programInfo) {
+            return {
+              success: false,
+              error: `Programa não encontrado no endereço ${PROGRAM_ID.toBase58()}. Verifique se o programa está deployado na devnet ou atualize NEXT_PUBLIC_PROGRAM_ID com o programId correto.`,
+            };
+          }
+          console.log('Programa encontrado na blockchain. Program ID:', PROGRAM_ID.toBase58());
+          
+          // Adicionar aviso sobre DeclaredProgramIdMismatch
+          console.warn('⚠️ Se receber erro "DeclaredProgramIdMismatch", isso significa que:');
+          console.warn('   O programId declarado no código Rust (declare_id!) não corresponde ao programId real do programa deployado.');
+          console.warn('   Solução: Faça redeploy do programa para garantir que correspondam.');
+          console.warn(`   Comando: cd program-sol && anchor build && anchor deploy --provider.cluster devnet`);
+        } catch (error) {
+          console.warn('Erro ao verificar programa na blockchain:', error);
+        }
+        
+        // Adicionar tratamento específico para erro DeclaredProgramIdMismatch
+        // Este erro será capturado após a tentativa de envio da transação
         
         // Obter blockhash inicial (será atualizado com um fresco em usePrivyWallet se necessário)
         const { blockhash } = await connection.getLatestBlockhash('confirmed');
@@ -274,6 +332,26 @@ export function useCampaigns() {
         };
       } catch (err) {
         console.error("Error creating campaign:", err);
+        
+        // Tratamento específico para erro DeclaredProgramIdMismatch
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        if (
+          errorMessage.includes('DeclaredProgramIdMismatch') ||
+          errorMessage.includes('0x1004') ||
+          errorMessage.includes('4100')
+        ) {
+          return {
+            success: false,
+            error: `Erro: O programId declarado no código Rust não corresponde ao programId do programa deployado.\n\n` +
+              `Program ID esperado: ${PROGRAM_ID.toBase58()}\n\n` +
+              `Para resolver:\n` +
+              `1. Certifique-se de que o programa está deployado na devnet\n` +
+              `2. Execute: cd program-sol && anchor build && anchor deploy --provider.cluster devnet\n` +
+              `3. Ou verifique se NEXT_PUBLIC_PROGRAM_ID corresponde ao programId real do programa deployado\n` +
+              `4. Verifique o Solana Explorer: https://explorer.solana.com/address/${PROGRAM_ID.toBase58()}?cluster=devnet`,
+          };
+        }
+        
         return {
           success: false,
           error: err instanceof Error ? err.message : "Failed to create campaign",

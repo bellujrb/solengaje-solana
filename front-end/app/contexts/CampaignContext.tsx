@@ -62,15 +62,24 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
 
   const createCampaign = async () => {
     try {
+      // Validar dados antes de criar
+      const totalBudget = parseFloat(campaignData.totalBudget);
+      if (isNaN(totalBudget) || totalBudget <= 0) {
+        return {
+          success: false,
+          error: 'Por favor, informe um orçamento válido.',
+        };
+      }
+
       const result = await createCampaignHook({
         name: campaignData.campaignName,
         description: campaignData.description || `${campaignData.brandName} campaign`,
-        amountUsdc: parseFloat(campaignData.totalBudget),
+        amountUsdc: totalBudget,
         targetLikes: parseInt(campaignData.targetLikes) || 0,
         targetComments: parseInt(campaignData.targetComments) || 0,
         targetViews: parseInt(campaignData.targetViews) || 0,
         targetShares: parseInt(campaignData.targetShares) || 0,
-        durationDays: parseInt(campaignData.durationDays),
+        durationDays: parseInt(campaignData.durationDays) || 1,
         instagramUsername: campaignData.instagramUsername || campaignData.brandName.toLowerCase().replace(/\s+/g, '_'),
       });
       
