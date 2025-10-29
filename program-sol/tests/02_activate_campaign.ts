@@ -38,12 +38,14 @@ import {
   getOrCreateAssociatedTokenAccount
 } from "@solana/spl-token";
 import { expect } from "chai";
+import idl from "../target/idl/solengage.json";
 
 describe("Solengage - BDD Tests", () => {
-  // Configure the client to use the local cluster
+  // Configure the client to use the devnet cluster
   anchor.setProvider(anchor.AnchorProvider.env());
-  const program = anchor.workspace.solengage as Program<Solengage>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
+  const programId = new anchor.web3.PublicKey("HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg");
+  const program = new anchor.Program(idl as any, programId, provider) as Program<Solengage>;
 
   // Test accounts
   let influencer: Keypair;
