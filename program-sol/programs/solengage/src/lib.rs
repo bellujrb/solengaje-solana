@@ -64,9 +64,9 @@ pub mod solengage {
         require!(Clock::get()?.unix_timestamp < campaign.deadline, ErrorCode::CampaignExpired);
 
         let cpi_accounts = Transfer {
-            from: ctx.accounts.campaign_usdc_account.to_account_info(),
-            to: ctx.accounts.brand_usdc_account.to_account_info(),
-            authority: ctx.accounts.campaign_usdc_account.to_account_info(),
+            from: ctx.accounts.brand_usdc_account.to_account_info(),
+            to: ctx.accounts.campaign_usdc_account.to_account_info(),
+            authority: ctx.accounts.brand.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
