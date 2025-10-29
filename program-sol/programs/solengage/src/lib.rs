@@ -85,110 +85,83 @@ pub mod solengage {
         views: u64,
         shares: u64,
     ) -> Result<()> {
-        let campaign = &mut ctx.accounts.campaign;
-        
-        // Validações de acesso e estado
-        require_keys_eq!(ctx.accounts.oracle.key(), campaign.oracle, ErrorCode::UnauthorizedOracle);
-        require_eq!(campaign.status, CampaignStatus::Active, ErrorCode::CampaignNotActive);
-        require!(Clock::get()?.unix_timestamp < campaign.deadline, ErrorCode::CampaignExpired);
+        require_eq!(ctx.accounts.campaign.status, CampaignStatus::Active, ErrorCode::CampaignNotActive);
+        require!(Clock::get()?.unix_timestamp < ctx.accounts.campaign.deadline, ErrorCode::CampaignExpired);
 
-        let old_progress = campaign.get_progress_percentage();
+        let old_progress = ctx.accounts.campaign.get_progress_percentage();
 
-        // Atualizar métricas
-        campaign.current_likes = likes;
-        campaign.current_comments = comments;
-        campaign.current_views = views;
-        campaign.current_shares = shares;
-        campaign.last_updated = Clock::get()?.unix_timestamp;
+        // Update metrics
+        ctx.accounts.campaign.current_likes = likes;
+        ctx.accounts.campaign.current_comments = comments;
+        ctx.accounts.campaign.current_views = views;
+        ctx.accounts.campaign.current_shares = shares;
+        ctx.accounts.campaign.last_updated = Clock::get()?.unix_timestamp;
 
-        let new_progress = campaign.get_progress_percentage();
+        let new_progress = ctx.accounts.campaign.get_progress_percentage();
 
-        // Processar pagamentos progressivos integrado
-        let old_milestone = (old_progress / 10).min(9) as usize;
-        let new_milestone = (new_progress / 10).min(9) as usize;
+        let old_milestones_achieved = (old_progress / 10) as usize;
+        let new_milestones_achieved = (new_progress / 10) as usize;
 
-        // Processar pagamentos para cada marco de 10% atingido
-        for milestone in (old_milestone + 1)..=(new_milestone) {
-            // Usar nova função de cálculo seguro
-            let amount_to_transfer = campaign.calculate_safe_payment(milestone)?;
+        for milestone_index in old_milestones_achieved..new_milestones_achieved {
+            let amount_to_transfer = ctx.accounts.campaign.calculate_safe_payment(milestone_index)?;
             
-            // Validar segurança do pagamento
             if amount_to_transfer > 0 {
-                // Validar com tratamento de erro
-                match campaign.validate_payment_safety(milestone, amount_to_transfer) {
-                    Ok(_) => {
-                        let bump = ctx.bumps.campaign;
-                        let seeds = &[
-                            b"campaign".as_ref(),
-                            campaign.influencer.as_ref(),
-                            campaign.brand.as_ref(),
-                            campaign.name.as_bytes(),
-                            &[bump],
-                        ];
-                        let signer = &[&seeds[..]];
+                if let Ok(_) = ctx.accounts.campaign.validate_payment_safety(milestone_index, amount_to_transfer) {
+                    let bump = ctx.bumps.campaign;
+                    let seeds = &[
+                        b"campaign".as_ref(),
+                        ctx.accounts.campaign.influencer.as_ref(),
+                        ctx.accounts.campaign.brand.as_ref(),
+                        ctx.accounts.campaign.name.as_bytes(),
+                        &[bump],
+                    ];
+                    let signer = &[&seeds[..]];
 
-                        let cpi_accounts = Transfer {
-                            from: ctx.accounts.campaign_usdc_account.to_account_info(),
-                            to: ctx.accounts.influencer_usdc_account.to_account_info(),
-                            authority: ctx.accounts.campaign_usdc_account.to_account_info(),
-                        };
-                        let cpi_program = ctx.accounts.token_program.to_account_info();
-                        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
-                        
-                        // Executar transferência com tratamento de erro
-                        match token::transfer(cpi_ctx, amount_to_transfer) {
-                            Ok(_) => {
-                                // Atualizar estado apenas se a transferência foi bem-sucedida
-                                campaign.paid_amount = campaign.paid_amount
-                                    .checked_add(amount_to_transfer)
-                                    .ok_or(ErrorCode::MathOverflow)?;
-                                campaign.payment_milestones[milestone] = true;
-                            },
-                            Err(e) => {
-                                // Log do erro e continuar (não falhar toda a transação por um pagamento)
-                                msg!("Payment failed for milestone {}: {:?}", milestone, e);
-                                // Opcionalmente, podemos retornar o erro se quisermos falhar toda a transação
-                                // return Err(e);
-                            }
+                    let cpi_accounts = Transfer {
+                        from: ctx.accounts.campaign_usdc_account.to_account_info(),
+                        to: ctx.accounts.influencer_usdc_account.to_account_info(),
+                        authority: ctx.accounts.campaign.to_account_info(),
+                    };
+                    let cpi_program = ctx.accounts.token_program.to_account_info();
+                    let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+                    
+                    match token::transfer(cpi_ctx, amount_to_transfer) {
+                        Ok(_) => {
+                            ctx.accounts.campaign.paid_amount = ctx.accounts.campaign.paid_amount.checked_add(amount_to_transfer).ok_or(ErrorCode::MathOverflow)?;
+                            ctx.accounts.campaign.payment_milestones[milestone_index] = true;
+                        },
+                        Err(e) => {
+                            msg!("Payment failed for milestone {}: {:?}", milestone_index, e);
                         }
-                    },
-                    Err(e) => {
-                        // Log da validação que falhou
-                        msg!("Payment validation failed for milestone {}: {:?}", milestone, e);
                     }
+                } else {
+                    msg!("Payment validation failed for milestone {}", milestone_index);
                 }
             }
         }
 
-        // Marcar campanha como completa se atingiu 100%
         if new_progress >= 100 {
-            campaign.status = CampaignStatus::Completed;
+            ctx.accounts.campaign.status = CampaignStatus::Completed;
         }
 
         Ok(())
     }
 
     pub fn cancel_campaign(ctx: Context<CancelCampaign>) -> Result<()> {
-        let campaign = &mut ctx.accounts.campaign;
+        require!(ctx.accounts.campaign.status != CampaignStatus::Completed, ErrorCode::CampaignAlreadyCompleted);
+        require_keys_eq!(ctx.accounts.brand.key(), ctx.accounts.campaign.brand, ErrorCode::UnauthorizedBrand);
         
-        // Verificar se a campanha não está completa
-        require!(campaign.status != CampaignStatus::Completed, ErrorCode::CampaignAlreadyCompleted);
-        
-        // Verificar se é a marca que está cancelando
-        require_keys_eq!(ctx.accounts.brand.key(), campaign.brand, ErrorCode::UnauthorizedBrand);
-        
-        // Reembolsar valor restante para a marca
-        if campaign.status == CampaignStatus::Active {
-            let remaining_amount = campaign.amount_usdc.checked_sub(campaign.paid_amount)
+        if ctx.accounts.campaign.status == CampaignStatus::Active {
+            let remaining_amount = ctx.accounts.campaign.amount_usdc.checked_sub(ctx.accounts.campaign.paid_amount)
                 .ok_or(ErrorCode::MathOverflow)?;
             
             if remaining_amount > 0 {
                 let bump = ctx.bumps.campaign;
                 let seeds = &[
                     b"campaign".as_ref(),
-                    campaign.influencer.as_ref(),
-                    campaign.brand.as_ref(),
-                    campaign.name.as_bytes(),
+                    ctx.accounts.campaign.influencer.as_ref(),
+                    ctx.accounts.campaign.brand.as_ref(),
+                    ctx.accounts.campaign.name.as_bytes(),
                     &[bump],
                 ];
                 let signer = &[&seeds[..]];
@@ -196,7 +169,7 @@ pub mod solengage {
                 let cpi_accounts = Transfer {
                     from: ctx.accounts.campaign_usdc_account.to_account_info(),
                     to: ctx.accounts.brand_usdc_account.to_account_info(),
-                    authority: ctx.accounts.campaign_usdc_account.to_account_info(),
+                    authority: ctx.accounts.campaign.to_account_info(),
                 };
                 let cpi_program = ctx.accounts.token_program.to_account_info();
                 let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
@@ -204,8 +177,8 @@ pub mod solengage {
             }
         }
         
-        campaign.status = CampaignStatus::Cancelled;
-        campaign.last_updated = Clock::get()?.unix_timestamp;
+        ctx.accounts.campaign.status = CampaignStatus::Cancelled;
+        ctx.accounts.campaign.last_updated = Clock::get()?.unix_timestamp;
         
         Ok(())
     }
@@ -254,12 +227,12 @@ pub struct BrandPayCampaign<'info> {
 pub struct UpdateCampaignMetrics<'info> {
     #[account(
         mut,
+        has_one = oracle,
         seeds = [b"campaign", campaign.influencer.key().as_ref(), campaign.brand.key().as_ref(), campaign.name.as_bytes()],
         bump
     )]
     pub campaign: Account<'info, Campaign>,
-    /// CHECK: Oracle account is verified through signature validation in the instruction handler
-    pub oracle: AccountInfo<'info>,
+    pub oracle: Signer<'info>,
     #[account(mut)]
     pub campaign_usdc_account: Account<'info, TokenAccount>,
     #[account(mut)]
