@@ -3,7 +3,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import idl from './idl.json';
 import { getSolanaRpcUrl } from './solana-config';
 
-export const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3');
+export const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg');
 export const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
 
 // Usar configuração centralizada para garantir consistência com Privy
