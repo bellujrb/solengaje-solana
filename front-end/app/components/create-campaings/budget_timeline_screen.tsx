@@ -4,20 +4,19 @@ import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
 import { useCampaign } from "../../contexts/CampaignContext";
 import { useAuth } from "../../hooks/useAuth";
-import { useCreateCampaign } from "../../hooks/useCreateCampaign";
 
 type BudgetTimelineScreenProps = {
   setActiveTab: (tab: string) => void;
 };
 
 export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps) {
-  const { campaignData, updateBudgetTimeline } = useCampaign();
+  const { campaignData, updateBudgetTimeline, createCampaign: createCampaignHook } = useCampaign();
   const { isConnected } = useAuth();
-  const { createCampaign: createCampaignHook, result: createResult, resetState } = useCreateCampaign();
   const [totalBudget, setTotalBudget] = useState(campaignData.totalBudget || "0");
   const [durationDays, setDurationDays] = useState(campaignData.durationDays || "30");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createResult, setCreateResult] = useState<{ success: boolean; error?: string; campaignId?: string; hash?: string; isPending?: boolean }>({ success: false });
 
   // Format currency input
   const formatCurrency = (value: string): string => {
@@ -70,16 +69,13 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
       }
       setActiveTab("campaign-success");
       setIsCreating(false);
+      setCreateResult({ success: false });
     } else if (createResult.error && isCreating) {
       setError(createResult.error);
       setIsCreating(false);
-      
-      // Reset the hook state after showing error
-      setTimeout(() => {
-        resetState();
-      }, 3000); // Reset after 3 seconds
+      setCreateResult({ success: false });
     }
-  }, [createResult, isCreating, setActiveTab, resetState]);
+  }, [createResult, isCreating, setActiveTab]);
 
   // Handle page visibility change (user switches tabs or minimizes)
   useEffect(() => {
@@ -108,7 +104,8 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
 
     // Validate that all required data is present
     if (!campaignData.campaignName || !campaignData.brandName || 
-        !campaignData.likes || !campaignData.views) {
+        !campaignData.targetLikes || !campaignData.targetViews || 
+        !campaignData.targetComments || !campaignData.targetShares) {
       setError("Please complete all previous steps before creating the campaign");
       return;
     }
@@ -120,13 +117,9 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
       // Update budget and timeline data
       updateBudgetTimeline({ totalBudget, durationDays });
       
-      // Create the campaign
-      await createCampaignHook({
-        totalValue: totalBudget,
-        durationDays,
-        targetLikes: campaignData.likes,
-        targetViews: campaignData.views,
-      });
+      // Create the campaign via context
+      const result = await createCampaignHook();
+      setCreateResult(result);
       
       // The useEffect will handle the success/error states
     } catch (err) {
@@ -141,7 +134,7 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
     parseInt(durationDays) > 0 && parseInt(durationDays) <= 365 &&
     isConnected;
 
-  const isLoading = isCreating || createResult.isLoading || createResult.isPending;
+  const isLoading = isCreating;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -162,12 +155,12 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
       <Card className="bg-white p-6 space-y-6">
         {/* Total Budget Input */}
         <div className="space-y-2">
-          <label htmlFor="totalBudget" className="block text-sm font-medium text-gray-700">
-            Total Budget (ETH) *
+            <label htmlFor="totalBudget" className="block text-sm font-medium text-gray-700">
+            Total Budget (USDC) *
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 text-lg">Ξ</span>
+              <span className="text-gray-500 text-lg">$</span>
             </div>
             <input
               id="totalBudget"
@@ -178,8 +171,8 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
               placeholder="0.0"
             />
           </div>
-          <p className="text-xs text-gray-500">
-          Use up to 4 decimal places (e.g. 1.2345 ETH)
+            <p className="text-xs text-gray-500">
+          Amount in USDC (e.g. 1000)
           </p>
         </div>
 
@@ -229,13 +222,10 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
             <div>
               <p className="text-blue-700 text-sm font-medium">
-                {createResult.isPending ? 'Waiting for wallet confirmation...' : 'Creating campaign...'}
+                Creating campaign...
               </p>
               <p className="text-blue-600 text-xs">
-                {createResult.isPending 
-                  ? 'Please approve the transaction in your wallet' 
-                  : 'Please wait while we process your campaign'
-                }
+                Please approve the transaction in your wallet
               </p>
             </div>
           </div>
@@ -258,9 +248,9 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
           <>
             <Button
               onClick={() => {
-                resetState();
                 setIsCreating(false);
                 setError(null);
+                setCreateResult({ success: false });
               }}
               variant="outline"
               className="flex-1 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 py-3 rounded-lg font-medium"
@@ -272,7 +262,7 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
               className="flex-1 bg-blue-500 text-white py-3 rounded-lg font-medium opacity-50 cursor-not-allowed"
             >
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              {createResult.isPending ? 'Confirming...' : 'Creating...'}
+              Creating...
             </Button>
           </>
         ) : (

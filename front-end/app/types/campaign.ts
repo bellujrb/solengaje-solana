@@ -3,14 +3,14 @@ export interface CampaignData {
   // Campaign Basics
   campaignName: string;
   brandName: string;
-  
-  // Content Requirements
-  selectedContentTypes: string[];
-  selectedPlatforms: string[];
+  description: string;
+  instagramUsername: string;
   
   // Success Metrics
-  likes: string;
-  views: string;
+  targetLikes: string;
+  targetComments: string;
+  targetViews: string;
+  targetShares: string;
   
   // Budget & Timeline
   totalBudget: string;

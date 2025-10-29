@@ -111,15 +111,31 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
       <Card className="bg-white p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-3">{campaign.title}</h1>
         
-        <div className="flex items-center space-x-2 text-gray-600 mb-4">
-          <Icon name="star" size="sm" />
-          <span className="text-sm">Ends: {campaign.endDate}</span>
+        <p className="text-gray-600 mb-3">{campaign.description}</p>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center space-x-2 text-gray-600">
+            <Icon name="star" size="sm" />
+            <span className="text-sm">Instagram: @{campaign.instagramUsername}</span>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-600">
+            <Icon name="star" size="sm" />
+            <span className="text-sm">Created: {campaign.createdAt ? new Date(parseInt(campaign.createdAt) * 1000).toLocaleDateString() : 'N/A'}</span>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-600">
+            <Icon name="star" size="sm" />
+            <span className="text-sm">Ends: {campaign.endDate}</span>
+          </div>
+          <div className="flex items-center space-x-2 text-gray-600">
+            <Icon name="camera" size="sm" />
+            <span className="text-sm">Posts: {campaign.postsCount}</span>
+          </div>
         </div>
 
         <Button
           className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
         >
-          Update Campaign
+          Update Campaign Metrics
         </Button>
       </Card>
 
@@ -135,27 +151,46 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
           ></div>
         </div>
 
-        {/* Metrics Cards */}
-        <div className="space-y-3">
+        {/* Metrics Cards - Grid 2x2 */}
+        <div className="grid grid-cols-2 gap-3">
           {/* Total Value Card */}
           <div className="bg-blue-50 rounded-lg p-4">
             <p className="text-3xl font-bold text-green-600">${campaign.totalValue}</p>
             <p className="text-sm font-medium text-gray-700 mt-1">Total Value</p>
-            <p className="text-xs text-gray-500">Campaign budget</p>
+            <p className="text-xs text-gray-500">Budget</p>
           </div>
 
-          {/* Target Views Card */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <p className="text-3xl font-bold text-blue-600">{campaign.targetViews}</p>
-            <p className="text-sm font-medium text-gray-700 mt-1">Target views</p>
-            <p className="text-xs text-gray-500">Goal to reach</p>
+          {/* Paid Amount Card */}
+          <div className="bg-green-50 rounded-lg p-4">
+            <p className="text-3xl font-bold text-green-600">${campaign.paidAmount}</p>
+            <p className="text-sm font-medium text-gray-700 mt-1">Paid</p>
+            <p className="text-xs text-gray-500">Amount paid</p>
           </div>
 
-          {/* Days Remaining Card */}
+          {/* Current vs Target Views */}
           <div className="bg-purple-50 rounded-lg p-4">
-            <p className="text-3xl font-bold text-purple-600">{daysRemaining > 0 ? daysRemaining : 0}</p>
-            <p className="text-sm font-medium text-purple-700 mt-1">Days Remaining</p>
-            <p className="text-xs text-gray-500">Time left</p>
+            <p className="text-2xl font-bold text-purple-600">{campaign.currentViews}/{campaign.targetViews}</p>
+            <p className="text-sm font-medium text-gray-700 mt-1">Views</p>
+            <p className="text-xs text-gray-500">Current / Target</p>
+          </div>
+
+          {/* Current vs Target Likes */}
+          <div className="bg-pink-50 rounded-lg p-4">
+            <p className="text-2xl font-bold text-pink-600">{campaign.currentLikes}/{campaign.targetLikes}</p>
+            <p className="text-sm font-medium text-gray-700 mt-1">Likes</p>
+            <p className="text-xs text-gray-500">Current / Target</p>
+          </div>
+        </div>
+
+        {/* Additional Metrics */}
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-lg font-bold text-gray-700">{campaign.currentComments}/{campaign.targetComments}</p>
+            <p className="text-xs text-gray-600">Comments</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-lg font-bold text-gray-700">{campaign.currentShares}/{campaign.targetShares}</p>
+            <p className="text-xs text-gray-600">Shares</p>
           </div>
         </div>
       </Card>

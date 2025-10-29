@@ -10,14 +10,18 @@ type SuccessMetricsScreenProps = {
 
 export function SuccessMetricsScreen({ setActiveTab }: SuccessMetricsScreenProps) {
   const { campaignData, updateSuccessMetrics } = useCampaign();
-  const [likes, setLikes] = useState(campaignData.likes || "");
-  const [views, setViews] = useState(campaignData.views || "");
+  const [targetLikes, setTargetLikes] = useState(campaignData.targetLikes || "");
+  const [targetComments, setTargetComments] = useState(campaignData.targetComments || "");
+  const [targetViews, setTargetViews] = useState(campaignData.targetViews || "");
+  const [targetShares, setTargetShares] = useState(campaignData.targetShares || "");
 
   // Sync local state with context when context changes
   useEffect(() => {
-    setLikes(campaignData.likes || "");
-    setViews(campaignData.views || "");
-  }, [campaignData.likes, campaignData.views]);
+    setTargetLikes(campaignData.targetLikes || "");
+    setTargetComments(campaignData.targetComments || "");
+    setTargetViews(campaignData.targetViews || "");
+    setTargetShares(campaignData.targetShares || "");
+  }, [campaignData.targetLikes, campaignData.targetComments, campaignData.targetViews, campaignData.targetShares]);
 
   const handleBackToDashboard = () => {
     setActiveTab("dashboard");
@@ -25,13 +29,15 @@ export function SuccessMetricsScreen({ setActiveTab }: SuccessMetricsScreenProps
 
   const handleContinue = () => {
     updateSuccessMetrics({
-      likes,
-      views
+      targetLikes,
+      targetComments,
+      targetViews,
+      targetShares
     });
     setActiveTab("budget-timeline");
   };
 
-  const isFormValid = likes.trim().length > 0 && views.trim().length > 0;
+  const isFormValid = targetLikes.trim().length > 0 && targetComments.trim().length > 0 && targetViews.trim().length > 0 && targetShares.trim().length > 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -57,36 +63,54 @@ export function SuccessMetricsScreen({ setActiveTab }: SuccessMetricsScreenProps
       </div>
 
       {/* Metrics Section */}
-      <Card className="bg-white p-6 space-y-6">
-        <div className="space-y-4">
+      <Card className="bg-white p-6 space-y-4">
+        <div className="space-y-3">
           {/* Views Input */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Views Target *</label>
-            <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
-              <Icon name="star" className="text-blue-600" />
-              <input
-                type="number"
-                value={views}
-                onChange={(e) => setViews(e.target.value)}
-                placeholder="100000"
-                className="flex-1 border-none outline-none text-lg"
-              />
-            </div>
+            <input
+              type="number"
+              value={targetViews}
+              onChange={(e) => setTargetViews(e.target.value)}
+              placeholder="100000"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
           </div>
 
           {/* Likes Input */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Likes Target *</label>
-            <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg">
-              <Icon name="heart" className="text-red-600" />
-              <input
-                type="number"
-                value={likes}
-                onChange={(e) => setLikes(e.target.value)}
-                placeholder="5000"
-                className="flex-1 border-none outline-none text-lg"
-              />
-            </div>
+            <input
+              type="number"
+              value={targetLikes}
+              onChange={(e) => setTargetLikes(e.target.value)}
+              placeholder="5000"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Comments Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Comments Target *</label>
+            <input
+              type="number"
+              value={targetComments}
+              onChange={(e) => setTargetComments(e.target.value)}
+              placeholder="1000"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+
+          {/* Shares Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Shares Target *</label>
+            <input
+              type="number"
+              value={targetShares}
+              onChange={(e) => setTargetShares(e.target.value)}
+              placeholder="500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
           </div>
         </div>
       </Card>

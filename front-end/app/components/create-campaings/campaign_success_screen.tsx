@@ -115,15 +115,6 @@ export function CampaignSuccessScreen({ setActiveTab }: CampaignSuccessScreenPro
               <span className="text-gray-600">Duration:</span>
               <span className="font-medium">{campaignData.durationDays} days</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Content Types:</span>
-              <span className="font-medium">{campaignData.selectedContentTypes.join(', ')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Platforms:</span>
-              <span className="font-medium">{campaignData.selectedPlatforms.join(', ')}</span>
-            </div>
-            
             {/* Success Metrics */}
             <div className="pt-2 border-t border-gray-200">
               <div className="flex justify-between mb-2">
@@ -131,11 +122,19 @@ export function CampaignSuccessScreen({ setActiveTab }: CampaignSuccessScreenPro
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Views Target:</span>
-                <span className="font-medium">{formatNumber(campaignData.views || '0')}</span>
+                <span className="font-medium">{formatNumber(campaignData.targetViews || '0')}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Likes Target:</span>
-                <span className="font-medium">{formatNumber(campaignData.likes || '0')}</span>
+                <span className="font-medium">{formatNumber(campaignData.targetLikes || '0')}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Comments Target:</span>
+                <span className="font-medium">{formatNumber(campaignData.targetComments || '0')}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Shares Target:</span>
+                <span className="font-medium">{formatNumber(campaignData.targetShares || '0')}</span>
               </div>
             </div>
           </div>

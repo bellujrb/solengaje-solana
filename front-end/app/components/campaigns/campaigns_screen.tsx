@@ -144,7 +144,7 @@ export function CampaignsScreen({ setActiveTab, setSelectedCampaignId }: Campaig
 
             {/* Campaign Details */}
             <div className="space-y-0.5 mb-4">
-              <p className="text-sm text-gray-600">Target: {campaign.targetViews} views</p>
+              <p className="text-sm text-gray-600">Instagram: @{campaign.instagramUsername}</p>
               <p className="text-sm text-gray-600">Ends: {campaign.endDate}</p>
             </div>
 

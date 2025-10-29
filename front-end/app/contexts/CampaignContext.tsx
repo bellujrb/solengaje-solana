@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { CampaignData } from '../types/campaign';
-import { useCreateCampaign } from '../hooks/useCreateCampaign';
+import { useCampaigns } from '../hooks/useCampaigns';
 
 interface CampaignContextType {
   campaignData: CampaignData;
-  updateCampaignBasics: (data: { campaignName: string; brandName: string }) => void;
-  updateContentRequirements: (data: { selectedContentTypes: string[]; selectedPlatforms: string[] }) => void;
-  updateSuccessMetrics: (data: { likes: string; views: string }) => void;
+  updateCampaignBasics: (data: { campaignName: string; brandName: string; description: string; instagramUsername: string }) => void;
+  updateSuccessMetrics: (data: { targetLikes: string; targetComments: string; targetViews: string; targetShares: string }) => void;
   updateBudgetTimeline: (data: { totalBudget: string; durationDays: string }) => void;
   resetCampaignData: () => void;
   getCampaignData: () => CampaignData;
@@ -16,10 +15,12 @@ interface CampaignContextType {
 const defaultCampaignData: CampaignData = {
   campaignName: '',
   brandName: '',
-  selectedContentTypes: [],
-  selectedPlatforms: [],
-  likes: '',
-  views: '',
+  description: '',
+  instagramUsername: '',
+  targetLikes: '',
+  targetComments: '',
+  targetViews: '',
+  targetShares: '',
   totalBudget: '',
   durationDays: '',
 };
@@ -28,23 +29,16 @@ const CampaignContext = createContext<CampaignContextType | undefined>(undefined
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
   const [campaignData, setCampaignData] = useState<CampaignData>(defaultCampaignData);
-  const { createCampaign: createCampaignHook } = useCreateCampaign();
+  const { createCampaign: createCampaignHook } = useCampaigns();
 
-  const updateCampaignBasics = (data: { campaignName: string; brandName: string }) => {
+  const updateCampaignBasics = (data: { campaignName: string; brandName: string; description: string; instagramUsername: string }) => {
     setCampaignData(prev => ({
       ...prev,
       ...data
     }));
   };
 
-  const updateContentRequirements = (data: { selectedContentTypes: string[]; selectedPlatforms: string[] }) => {
-    setCampaignData(prev => ({
-      ...prev,
-      ...data
-    }));
-  };
-
-  const updateSuccessMetrics = (data: { likes: string; views: string }) => {
+  const updateSuccessMetrics = (data: { targetLikes: string; targetComments: string; targetViews: string; targetShares: string }) => {
     setCampaignData(prev => ({
       ...prev,
       ...data
@@ -69,18 +63,23 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const createCampaign = async () => {
     try {
       const result = await createCampaignHook({
-        totalValue: campaignData.totalBudget,
-        durationDays: campaignData.durationDays,
-        targetLikes: campaignData.likes,
-        targetViews: campaignData.views,
+        name: campaignData.campaignName,
+        description: campaignData.description || `${campaignData.brandName} campaign`,
+        amountUsdc: parseFloat(campaignData.totalBudget),
+        targetLikes: parseInt(campaignData.targetLikes) || 0,
+        targetComments: parseInt(campaignData.targetComments) || 0,
+        targetViews: parseInt(campaignData.targetViews) || 0,
+        targetShares: parseInt(campaignData.targetShares) || 0,
+        durationDays: parseInt(campaignData.durationDays),
+        instagramUsername: campaignData.instagramUsername || campaignData.brandName.toLowerCase().replace(/\s+/g, '_'),
       });
       
       return {
         success: result.success,
         error: result.error,
         campaignId: result.campaignId,
-        hash: result.hash,
-        isPending: result.isPending,
+        hash: result.signature,
+        isPending: false,
       };
     } catch (error) {
       return {
@@ -93,7 +92,6 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const value: CampaignContextType = {
     campaignData,
     updateCampaignBasics,
-    updateContentRequirements,
     updateSuccessMetrics,
     updateBudgetTimeline,
     resetCampaignData,
