@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Solengaje",
     description:
-      "Solengaje - Plataforma de campanhas de influenciadores na Morph Holesky Testnet",
+      "Solengaje - Plataforma de campanhas de influenciadores",
   };
 }
 

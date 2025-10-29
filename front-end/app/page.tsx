@@ -55,7 +55,6 @@ export default function App() {
             variant="ghost"
             size="sm"
             className="text-[var(--ock-text-foreground-muted)] text-xs"
-            onClick={() => window.open("https://morphl2.io", "_blank")}
           >
             Built on Solana Mainnet
           </Button>

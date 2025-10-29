@@ -7,7 +7,6 @@ import { useMemo } from "react";
 export function usePrivyWallet() {
   const { authenticated, user, ready } = usePrivy();
 
-  // Get Solana wallet address
   const solanaWallet = useMemo(() => {
     if (!user?.wallet?.address) return null;
     return user.wallet.address;
@@ -30,9 +29,7 @@ export function usePrivyWallet() {
       throw new Error("No wallet available");
     }
 
-    // Privy's wallet interface
     if (wallet.sendTransaction) {
-      // For embedded wallets
       return await wallet.sendTransaction(tx);
     } else if (wallet.signTransaction) {
       return await wallet.signTransaction(tx);
@@ -46,7 +43,6 @@ export function usePrivyWallet() {
       throw new Error("No wallet available");
     }
 
-    // Fallback: sign one by one
     return await Promise.all(txs.map(tx => signTransaction(tx)));
   };
 

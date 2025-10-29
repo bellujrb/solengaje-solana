@@ -11,7 +11,7 @@ export function Home({ setActiveTab }: FeaturesProps) {
     <div className="space-y-6 animate-fade-in">
       {/* Hero Section */}
       <div className="text-center space-y-4">
-        {/* Built on Morph Badge */}
+        {/* Built on Solana Badge */}
         <div className="inline-flex items-center space-x-2 bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
           <Icon name="lightning" size="sm" className="text-purple-600" />
           <span>Built on Solana</span>

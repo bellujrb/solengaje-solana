@@ -71,7 +71,7 @@ export function PixPaymentScreen({
         </div>
         <div className="text-center">
           <h2 className="text-white text-lg font-medium mb-2">Campaign: {campaignName}</h2>
-          <p className="text-white text-sm opacity-90">Secure payment via Morph blockchain</p>
+          <p className="text-white text-sm opacity-90">Secure payment via Solana blockchain</p>
         </div>
       </div>
 
