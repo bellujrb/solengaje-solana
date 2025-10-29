@@ -55,9 +55,9 @@ export function DashboardScreen({ setActiveTab }: DashboardScreenProps) {
             <h1 className="text-4xl font-bold text-white">
               {isLoading ? "Loading..." : `${formattedBalance}`}
             </h1>
-            <p className="text-gray-200 text-sm">
+            {/* <p className="text-gray-200 text-sm">
               {usdValue ? `≈ $${usdValue.toLocaleString()}` : balance === 0 ? "$0.00" : "Loading USD value..."}
-            </p>
+            </p> */}
           </div>
           
           <div className="flex space-x-3">
