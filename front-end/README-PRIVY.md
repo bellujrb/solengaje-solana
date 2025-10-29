@@ -26,7 +26,7 @@ NEXT_PUBLIC_SOLANA_RPC_URL=https://supertea-solanan-66b1.devnet.rpcpool.com/d914
 NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL=https://api.mainnet-beta.solana.com
 
 # Program Configuration
-NEXT_PUBLIC_INFLUNEST_PROGRAM_ID=DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3
+NEXT_PUBLIC_INFLUNEST_PROGRAM_ID=HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg
 NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
 ```
 

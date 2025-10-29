@@ -87,7 +87,7 @@ influnest/
 ## Smart Contract Architecture
 
 ### Program ID
-Default: `DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3` (example)
+Default: `HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg` (example)
 
 **Important**: This ID must be updated after deploying:
 1. Deploy program: `anchor deploy`
