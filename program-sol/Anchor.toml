@@ -6,8 +6,6 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-flipper = "AaDDkYTbHCh5JogkpGAKnhFUdGEZoWiYkM9NNgVTo85W"
-hello = "3FZusWeV9GBm8VT6FfmyEQmUAq4TtTMGz8eQAcLnUHxA"
 solengage = "FMmxYCKBvwr3nQ66MxVYQLWt4CqN5wyvRWRBdQX1bZSN"
 
 [registry]

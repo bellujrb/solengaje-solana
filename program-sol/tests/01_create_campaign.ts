@@ -26,7 +26,7 @@
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Solengage } from "../../target/types/solengage";
+import { Solengage } from "../target/types/solengage";
 import { 
   PublicKey, 
   Keypair, 
