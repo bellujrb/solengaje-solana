@@ -9,10 +9,12 @@ export function useCampaignForm() {
     return (
       campaignData.campaignName.trim().length > 0 &&
       campaignData.brandName.trim().length > 0 &&
-      campaignData.selectedContentTypes.length > 0 &&
-      campaignData.selectedPlatforms.length > 0 &&
-      campaignData.likes.trim().length > 0 &&
-      campaignData.views.trim().length > 0 &&
+      campaignData.description.trim().length > 0 &&
+      campaignData.instagramUsername.trim().length > 0 &&
+      campaignData.targetLikes.trim().length > 0 &&
+      campaignData.targetComments.trim().length > 0 &&
+      campaignData.targetViews.trim().length > 0 &&
+      campaignData.targetShares.trim().length > 0 &&
       campaignData.totalBudget.trim().length > 0 &&
       campaignData.durationDays.trim().length > 0
     );
@@ -20,25 +22,30 @@ export function useCampaignForm() {
 
   const getFormProgress = (): FormProgress => {
     const { campaignData } = campaignContext;
-    const totalSteps = 4;
+    const totalSteps = 3; // Removido Content Requirements
     let completedSteps = 0;
 
     // Step 1: Campaign Basics
-    if (campaignData.campaignName.trim().length > 0 && campaignData.brandName.trim().length > 0) {
+    if (
+      campaignData.campaignName.trim().length > 0 && 
+      campaignData.brandName.trim().length > 0 &&
+      campaignData.description.trim().length > 0 &&
+      campaignData.instagramUsername.trim().length > 0
+    ) {
       completedSteps++;
     }
 
-    // Step 2: Content Requirements
-    if (campaignData.selectedContentTypes.length > 0 && campaignData.selectedPlatforms.length > 0) {
+    // Step 2: Success Metrics (Target Metrics)
+    if (
+      campaignData.targetLikes.trim().length > 0 && 
+      campaignData.targetComments.trim().length > 0 &&
+      campaignData.targetViews.trim().length > 0 &&
+      campaignData.targetShares.trim().length > 0
+    ) {
       completedSteps++;
     }
 
-    // Step 3: Success Metrics
-    if (campaignData.likes.trim().length > 0 && campaignData.views.trim().length > 0) {
-      completedSteps++;
-    }
-
-    // Step 4: Budget & Timeline
+    // Step 3: Budget & Timeline
     if (campaignData.totalBudget.trim().length > 0 && campaignData.durationDays.trim().length > 0) {
       completedSteps++;
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState, useEffect } from "react";
+import { type ReactNode, useState, useEffect, useMemo } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 import { createSolanaRpc, createSolanaRpcSubscriptions } from "@solana/kit";
@@ -14,6 +14,15 @@ export function Providers(props: { children: ReactNode }) {
   }, []);
 
   const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  const solanaMainnetRpc = process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com";
+
+  // Usar useMemo para só calcular os connectors após mount
+  const solanaConnectors = useMemo(() => {
+    if (!mounted) {
+      return undefined;
+    }
+    return toSolanaWalletConnectors();
+  }, [mounted]);
 
   if (!privyAppId) {
     return (
@@ -43,29 +52,29 @@ export function Providers(props: { children: ReactNode }) {
             createOnLogin: "off",
           },
         },
-        loginMethods: ['email'],
+        loginMethods: ["email"],
         appearance: {
           walletChainType: "solana-only",
           theme: "light",
         },
         externalWallets: {
-          solana: { connectors: toSolanaWalletConnectors() },
+          solana: {
+            connectors: solanaConnectors ?? undefined,
+          },
         },
         solana: {
           rpcs: {
             "solana:mainnet": {
-              rpc: createSolanaRpc(
-                process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL ||
-                "https://api.mainnet-beta.solana.com"
-              ),
+              rpc: createSolanaRpc(solanaMainnetRpc),
               rpcSubscriptions: createSolanaRpcSubscriptions(
-                process.env.NEXT_PUBLIC_SOLANA_MAINNET_RPC_URL?.replace("http", "ws") ||
-                "wss://api.mainnet-beta.solana.com"
+                solanaMainnetRpc.replace(/^http/, "ws") // trocar protocolo para ws se for http-url
               ),
             },
             "solana:devnet": {
               rpc: createSolanaRpc("https://api.devnet.solana.com"),
-              rpcSubscriptions: createSolanaRpcSubscriptions("wss://api.devnet.solana.com"),
+              rpcSubscriptions: createSolanaRpcSubscriptions(
+                "wss://api.devnet.solana.com"
+              ),
             },
           },
         },
@@ -73,6 +82,5 @@ export function Providers(props: { children: ReactNode }) {
     >
       <CampaignProvider>{props.children}</CampaignProvider>
     </PrivyProvider>
-
   );
 }

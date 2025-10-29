@@ -9,7 +9,7 @@ export const ConnectButton = () => {
       action={{ 
         type: 'login', 
         options: { 
-          loginMethods: ['email'],
+          loginMethods: ['email', 'wallet'],
           walletChainType: 'solana-only',
         } 
       }}
