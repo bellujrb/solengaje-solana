@@ -1,0 +1,6 @@
+[submodule "blockchain/smartcontracts/lib/openzeppelin-contracts"]
+	path = blockchain/smartcontracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "blockchain/smartcontracts/lib/solady"]
+	path = blockchain/smartcontracts/lib/solady
+	url = https://github.com/Vectorized/solady
