@@ -61,7 +61,9 @@ export function CampaignsScreen({ setActiveTab, setSelectedCampaignId }: Campaig
             <p className="text-gray-500 text-sm">
               You need to connect your wallet to access campaigns
             </p>
-            <ConnectButton />
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
           </div>
         </Card>
       </div>

@@ -36,7 +36,9 @@ export function DashboardScreen({ setActiveTab }: DashboardScreenProps) {
             <p className="text-gray-500 text-sm">
               You need to connect your wallet to access the dashboard
             </p>
-            <ConnectButton />
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
           </div>
         </Card>
       </div>

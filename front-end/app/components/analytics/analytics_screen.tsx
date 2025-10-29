@@ -147,7 +147,9 @@ export function AnalyticsScreen() {
             <p className="text-gray-500 text-sm">
               You need to connect your wallet to access analytics
             </p>
-            <ConnectButton />
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
           </div>
         </Card>
       </div>

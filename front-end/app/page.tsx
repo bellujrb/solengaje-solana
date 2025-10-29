@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { Features } from "./components/onboarding/onboarding_features";
 import { Button } from "../components/button";
-import { Home } from "./components/welcome_screen/welcome";
+import OnboardingPage from "./components/onboarding/onboarding";
 import { ConnectionScreen } from "./components/connection/connection_screen";
 import { DashboardScreen } from "./components/dashboard/dashboard_screen";
 import { BottomNavigation } from "./components/navigation/bottom_navigation";
@@ -26,16 +26,20 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-[var(--app-foreground)] mini-app-theme from-[var(--app-background)] to-[var(--app-gray)]">
-      <div className="w-full max-w-md mx-auto px-4 py-3">
-        <header className="flex justify-between items-center mb-6 h-11 relative z-[9999]">
-          <h1 className="text-xl font-bold text-[var(--app-foreground)]">Solengaje</h1>
-          <div className="flex items-center space-x-2">
-            <ConnectButton />
-          </div>
-        </header>
+      {activeTab !== "home" && (
+        <div className="w-full max-w-md mx-auto px-4 py-3">
+          <header className="flex justify-between items-center mb-6 h-11 relative z-[9999]">
+            <h1 className="text-xl font-bold text-[var(--app-foreground)]">Solengaje</h1>
+            <div className="flex items-center space-x-2">
+              <ConnectButton />
+            </div>
+          </header>
+        </div>
+      )}
 
+      <div className="w-full max-w-md mx-auto px-4 py-3">
         <main className={`flex-1 ${(activeTab === "dashboard" || activeTab === "campaigns" || activeTab === "campaign-details" || activeTab === "analytics" || activeTab === "settings" || activeTab === "campaign-basics" || activeTab === "content-requirements" || activeTab === "success-metrics" || activeTab === "budget-timeline" || activeTab === "campaign-success") ? "pb-20" : ""}`}>
-          {activeTab === "home" && <Home setActiveTab={setActiveTab} />}
+          {activeTab === "home" && <OnboardingPage setActiveTab={setActiveTab} />}
           {activeTab === "connection" && <ConnectionScreen setActiveTab={setActiveTab} />}
           {activeTab === "features" && <Features setActiveTab={setActiveTab} />}
           {activeTab === "dashboard" && <DashboardScreen setActiveTab={setActiveTab} />}
@@ -50,15 +54,17 @@ export default function App() {
           {activeTab === "settings" && <SettingsScreen setActiveTab={setActiveTab} />}
         </main>
 
-        <footer className="mt-2 pt-4 flex justify-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-[var(--ock-text-foreground-muted)] text-xs"
-          >
-            Built on Solana Mainnet
-          </Button>
-        </footer>
+        {activeTab !== "home" && (
+          <footer className="mt-2 pt-4 flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[var(--ock-text-foreground-muted)] text-xs"
+            >
+              Built on Solana Mainnet
+            </Button>
+          </footer>
+        )}
       </div>
       
       {/* Bottom Navigation - Only show from dashboard onwards */}

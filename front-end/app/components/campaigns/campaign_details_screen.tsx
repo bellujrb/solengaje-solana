@@ -49,7 +49,9 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
             <p className="text-gray-500 text-sm">
               You need to connect your wallet to access campaign details
             </p>
-            <ConnectButton />
+            <div className="flex justify-center">
+              <ConnectButton />
+            </div>
           </div>
         </Card>
       </div>
