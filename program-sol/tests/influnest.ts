@@ -127,7 +127,7 @@ describe("influnest", () => {
     await program.methods
       .initializeOracle(oracle.publicKey)
       .accounts({
-        oracleConfig: oracleConfigPda,
+        oracleConfig: oracleConfigPDA,
         authority: authority.publicKey,
         systemProgram: SystemProgram.programId,
       })
