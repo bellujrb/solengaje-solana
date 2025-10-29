@@ -9,7 +9,7 @@ import {
   convertMultipleCampaigns,
   convertBlockchainCampaignToUI,
 } from "../utils/campaignConverter";
-import idl from "../lib/idl.json";
+import solengIdl from "../lib/solengage.json";
 
 export interface Campaign {
   id: string;
@@ -41,9 +41,10 @@ interface BlockchainCampaign {
   influencer: PublicKey;
   brand: PublicKey;
   name: string;
-  description: string;
+  brandName: string;
+  hashtag: string;
   amountUsdc: BN;
-  amountPaid: BN;
+  paidAmount: BN;
   targetLikes: BN;
   targetComments: BN;
   targetViews: BN;
@@ -52,16 +53,12 @@ interface BlockchainCampaign {
   currentComments: BN;
   currentViews: BN;
   currentShares: BN;
-  deadlineTs: BN;
-  instagramUsername: string;
-  status: "Pending" | "Active" | "Completed" | "Cancelled" | "Expired";
+  deadline: BN;
+  status: { draft?: {} } | { active?: {} } | { completed?: {} } | { cancelled?: {} };
+  oracle: PublicKey;
   createdAt: BN;
-  posts: Array<{
-    postId: string;
-    postUrl: string;
-    addedAt: BN;
-  }>;
-  bump: number;
+  lastUpdated: BN;
+  paymentMilestones: boolean[];
 }
 function getProgram(anchorWallet: any): Program {
   const connection = getConnection();
@@ -72,7 +69,7 @@ function getProgram(anchorWallet: any): Program {
 
   // Criar uma cópia profunda do IDL e atualizar o address com o programId correto
   // O Anchor verifica se o address no IDL corresponde ao programId usado na instrução
-  const idlWithProgramId = JSON.parse(JSON.stringify(idl));
+  const idlWithProgramId = JSON.parse(JSON.stringify(solengIdl));
   idlWithProgramId.address = PROGRAM_ID.toBase58();
   
   console.log('Creating Program with IDL address:', idlWithProgramId.address);
@@ -175,6 +172,7 @@ export function useCampaigns() {
     async (params: {
       name: string;
       description: string;
+      brandName?: string;
       amountUsdc: number;
       targetLikes: number;
       targetComments: number;
@@ -208,11 +206,21 @@ export function useCampaigns() {
         const createdAt = Math.floor(Date.now() / 1000);
         const deadlineTs = createdAt + params.durationDays * 24 * 60 * 60;
         const amountUsdcBN = new BN(Math.floor(params.amountUsdc * 1_000_000));
-        const [campaignPDA, bump] = PublicKey.findProgramAddressSync(
+        
+        // TODO: Get brand public key from form data or settings
+        // For now, using the same publicKey as brand (to be updated later)
+        const brandPublicKey = publicKey;
+        
+        // TODO: Get oracle public key from environment or contract
+        // For now, using a placeholder oracle (you need to set this to the actual oracle)
+        const oraclePublicKey = new PublicKey("11111111111111111111111111111112");
+        
+        const [campaignPDA] = PublicKey.findProgramAddressSync(
           [
             Buffer.from("campaign"),
             publicKey.toBuffer(),
-            Buffer.from(new BigInt64Array([BigInt(createdAt)]).buffer),
+            brandPublicKey.toBuffer(),
+            Buffer.from(params.name),
           ],
           PROGRAM_ID
         );
@@ -238,19 +246,20 @@ export function useCampaigns() {
         const tx: Transaction = await program.methods
           .createCampaign(
             params.name,
-            params.description,
-            amountUsdcBN,
+            params.brandName || params.name, // brand_name
+            params.description, // hashtag (reusing description for now)
             new BN(params.targetLikes),
             new BN(params.targetComments),
             new BN(params.targetViews),
             new BN(params.targetShares),
-            new BN(deadlineTs),
-            params.instagramUsername,
-            new BN(createdAt)
+            amountUsdcBN,
+            new BN(deadlineTs)
           )
           .accounts({
             campaign: campaignPDA,
             influencer: publicKey,
+            brand: brandPublicKey,
+            oracle: oraclePublicKey,
             systemProgram: SystemProgram.programId,
           })
           .transaction();

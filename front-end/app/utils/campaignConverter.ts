@@ -9,9 +9,10 @@ interface BlockchainCampaign {
   influencer: PublicKey;
   brand: PublicKey;
   name: string;
-  description: string;
+  brandName: string;
+  hashtag: string;
   amountUsdc: BN;
-  amountPaid: BN;
+  paidAmount: BN;
   targetLikes: BN;
   targetComments: BN;
   targetViews: BN;
@@ -20,16 +21,12 @@ interface BlockchainCampaign {
   currentComments: BN;
   currentViews: BN;
   currentShares: BN;
-  deadlineTs: BN;
-  instagramUsername: string;
-  status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' | 'Expired';
+  deadline: BN;
+  status: { draft?: {} } | { active?: {} } | { completed?: {} } | { cancelled?: {} };
+  oracle: PublicKey;
   createdAt: BN;
-  posts: Array<{
-    postId: string;
-    postUrl: string;
-    addedAt: BN;
-  }>;
-  bump: number;
+  lastUpdated: BN;
+  paymentMilestones: boolean[];
 }
 
 /**
@@ -71,16 +68,16 @@ function calculateCampaignStatus(
   targetLikes: BN,
   currentViews: BN,
   targetViews: BN,
-  deadlineTs: BN,
-  amountPaid: BN,
+  deadline: BN,
+  paidAmount: BN,
   amountUsdc: BN
 ): Campaign['status'] {
   const now = new BN(Math.floor(Date.now() / 1000));
-  const isExpired = now.gt(deadlineTs);
-  const isFunded = amountPaid.gte(amountUsdc);
+  const isExpired = now.gt(deadline);
+  const isFunded = paidAmount.gte(amountUsdc);
   const isCompleted = currentLikes.gte(targetLikes) && currentViews.gte(targetViews);
 
-  if (status === 'Cancelled') {
+  if ('cancelled' in status && status.cancelled) {
     return 'CANCELLED';
   }
 
@@ -88,11 +85,11 @@ function calculateCampaignStatus(
     return 'EXPIRED';
   }
 
-  if (isCompleted) {
+  if (isCompleted || ('completed' in status && status.completed)) {
     return 'COMPLETED';
   }
 
-  if (!isFunded) {
+  if (!isFunded || ('draft' in status && status.draft)) {
     return 'PENDING';
   }
 
@@ -106,7 +103,7 @@ export function convertBlockchainCampaignToUI(
   blockchainCampaign: BlockchainCampaign
 ): Campaign {
   const amountUsdcValue = usdcToNumber(blockchainCampaign.amountUsdc);
-  const amountPaidValue = usdcToNumber(blockchainCampaign.amountPaid);
+  const amountPaidValue = usdcToNumber(blockchainCampaign.paidAmount);
   
   // Calcular progresso baseado em todas as métricas (média ponderada)
   const likesProgress = calculateProgress(blockchainCampaign.currentLikes, blockchainCampaign.targetLikes);
@@ -124,8 +121,8 @@ export function convertBlockchainCampaignToUI(
     blockchainCampaign.targetLikes,
     blockchainCampaign.currentViews,
     blockchainCampaign.targetViews,
-    blockchainCampaign.deadlineTs,
-    blockchainCampaign.amountPaid,
+    blockchainCampaign.deadline,
+    blockchainCampaign.paidAmount,
     blockchainCampaign.amountUsdc
   );
 
@@ -134,7 +131,7 @@ export function convertBlockchainCampaignToUI(
     brand: blockchainCampaign.brand.toBase58(),
     creator: blockchainCampaign.influencer.toBase58(),
     totalValue: amountUsdcValue.toFixed(1),
-    deadline: blockchainCampaign.deadlineTs.toString(),
+    deadline: blockchainCampaign.deadline.toString(),
     targetLikes: blockchainCampaign.targetLikes.toString(),
     targetComments: blockchainCampaign.targetComments.toString(),
     targetViews: blockchainCampaign.targetViews.toString(),
@@ -147,11 +144,11 @@ export function convertBlockchainCampaignToUI(
     status,
     progress,
     title: blockchainCampaign.name,
-    description: blockchainCampaign.description,
-    instagramUsername: blockchainCampaign.instagramUsername,
+    description: blockchainCampaign.hashtag, // Using hashtag as description fallback
+    instagramUsername: '', // Not available in new IDL
     createdAt: blockchainCampaign.createdAt.toString(),
-    postsCount: blockchainCampaign.posts.length,
-    endDate: timestampToISO(blockchainCampaign.deadlineTs),
+    postsCount: 0, // Not available in new IDL
+    endDate: timestampToISO(blockchainCampaign.deadline),
   };
 }
 

@@ -74,6 +74,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       const result = await createCampaignHook({
         name: campaignData.campaignName,
         description: campaignData.description || `${campaignData.brandName} campaign`,
+        brandName: campaignData.brandName,
         amountUsdc: totalBudget,
         targetLikes: parseInt(campaignData.targetLikes) || 0,
         targetComments: parseInt(campaignData.targetComments) || 0,

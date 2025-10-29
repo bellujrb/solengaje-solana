@@ -1,6 +1,6 @@
 import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
-import idl from './idl.json';
+import idl from './solengage.json';
 import { getSolanaRpcUrl } from './solana-config';
 
 export const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg');
