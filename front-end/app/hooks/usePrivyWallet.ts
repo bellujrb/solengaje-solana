@@ -1,9 +1,10 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets as useSolanaWallets, useSignAndSendTransaction } from "@privy-io/react-auth/solana";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { useWallets as useSolanaWallets, useSignAndSendTransaction, useSignTransaction } from "@privy-io/react-auth/solana";
+import { PublicKey, Transaction, Connection } from "@solana/web3.js";
 import { useMemo } from "react";
+import { getConnection } from "../lib/anchor";
 
 export function usePrivyWallet() {
   const { authenticated, user, ready } = usePrivy();
@@ -13,6 +14,7 @@ export function usePrivyWallet() {
   // If they throw, React will catch and the component will re-render when ready
   let walletsHook: ReturnType<typeof useSolanaWallets>;
   let signHook: ReturnType<typeof useSignAndSendTransaction>;
+  let signTxHook: ReturnType<typeof useSignTransaction>;
   
   // Always call hooks - they may throw if context is not available
   // This is expected and React will handle re-rendering
@@ -32,6 +34,13 @@ export function usePrivyWallet() {
     signHook = { signAndSendTransaction: null as any } as any;
   }
   
+  try {
+    signTxHook = useSignTransaction();
+  } catch (error: any) {
+    // Return safe defaults if hooks fail due to provider not ready
+    signTxHook = { signTransaction: null as any } as any;
+  }
+  
   // Extract values safely
   const solanaWallets = useMemo(() => {
     if (!ready) return [];
@@ -42,6 +51,11 @@ export function usePrivyWallet() {
     if (!ready) return null;
     return signHook?.signAndSendTransaction || null;
   }, [ready, signHook?.signAndSendTransaction]);
+  
+  const signTransaction = useMemo(() => {
+    if (!ready) return null;
+    return signTxHook?.signTransaction || null;
+  }, [ready, signTxHook?.signTransaction]);
 
   // Pegar a primeira wallet Solana disponível
   const solanaWallet = useMemo(() => {
@@ -99,16 +113,11 @@ export function usePrivyWallet() {
 
   // Wrapper para sendTransaction que usa a wallet Solana correta
   const sendTransaction = useMemo(() => {
-    if (!solanaWallet || !signAndSendTransaction) return undefined;
+    if (!solanaWallet) return undefined;
     
     return async (serializedTx: Uint8Array | Buffer) => {
       if (!solanaWallet.address) {
         throw new Error('No wallet address found');
-      }
-      
-      // Verificar se a wallet é válida
-      if (!solanaWallet || typeof solanaWallet.address !== 'string') {
-        throw new Error('Invalid Solana wallet');
       }
       
       // signAndSendTransaction espera Buffer ou Uint8Array
@@ -117,46 +126,64 @@ export function usePrivyWallet() {
         : Buffer.from(serializedTx);
       
       try {
-        // Verificar a estrutura da wallet
-        console.log('Wallet structure:', {
-          address: solanaWallet.address,
-          hasStandardWallet: !!solanaWallet.standardWallet,
-          walletKeys: Object.keys(solanaWallet),
-        });
-        
-        // signAndSendTransaction espera a wallet e a transação
-        // A wallet precisa ter a estrutura correta do módulo Solana
-        const result = await signAndSendTransaction({
-          transaction: txBuffer,
-          wallet: solanaWallet,
-        });
-        
-        // Retornar a signature
-        return typeof result === 'string' 
-          ? result 
-          : (result as any)?.signature || (result as any)?.hash || String(result);
-      } catch (error) {
-        console.error('Error in signAndSendTransaction:', error);
-        console.error('Wallet:', solanaWallet);
-        console.error('Wallet type:', typeof solanaWallet);
-        console.error('Transaction buffer length:', txBuffer.length);
-        // Tentar usar standardWallet se disponível
-        if ((solanaWallet as any)?.standardWallet?.sendTransaction) {
-          console.log('Trying standardWallet.sendTransaction');
+        // Tentar primeiro usar signTransaction + enviar manualmente (evita funding)
+        if (signTransaction) {
           try {
+            console.log('Using signTransaction + manual send');
+            // Converter para Transaction
             const tx = Transaction.from(txBuffer);
-            const result = await (solanaWallet as any).standardWallet.sendTransaction(tx);
-            return typeof result === 'string' 
-              ? result 
-              : (result as any)?.signature || String(result);
-          } catch (fallbackError) {
-            console.error('Fallback also failed:', fallbackError);
+            
+            // Assinar a transação
+            const signedResult = await signTransaction({
+              transaction: txBuffer,
+              wallet: solanaWallet,
+            });
+            
+            // Enviar a transação assinada manualmente
+            const connection = getConnection();
+            const signature = await connection.sendRawTransaction(
+              signedResult.signedTransaction,
+              { skipPreflight: false }
+            );
+            
+            console.log('Transaction sent with signature:', signature);
+            return signature;
+          } catch (signError: any) {
+            console.warn('signTransaction + manual send failed, trying signAndSendTransaction:', signError.message);
+            // Fall through para signAndSendTransaction
           }
         }
+        
+        // Se signTransaction não funcionar, tentar signAndSendTransaction
+        // Note: pode dar erro de funding se não estiver habilitado
+        if (signAndSendTransaction) {
+          try {
+            console.log('Using signAndSendTransaction');
+            const result = await signAndSendTransaction({
+              transaction: txBuffer,
+              wallet: solanaWallet,
+            });
+            
+            // Resultado pode ser Uint8Array ou objeto com signature
+            if (result?.signature) {
+              const sig = result.signature;
+              return Buffer.from(sig).toString('base64');
+            }
+            return typeof result === 'string' ? result : String(result);
+          } catch (sendError: any) {
+            console.error('signAndSendTransaction failed:', sendError);
+            // Se der erro de funding, não há muito o que fazer além de lançar o erro
+            throw sendError;
+          }
+        }
+        
+        throw new Error('No transaction sending method available. Please ensure wallet is properly connected.');
+      } catch (error: any) {
+        console.error('Error sending transaction:', error);
         throw error;
       }
     };
-  }, [solanaWallet, signAndSendTransaction]);
+  }, [solanaWallet, signTransaction, signAndSendTransaction]);
 
   return {
     publicKey,

@@ -45,6 +45,7 @@ export function Providers(props: { children: ReactNode }) {
       appId={privyAppId}
       config={{
         embeddedWallets: {
+          showWalletUIs: true, // Habilitar modais de confirmação da wallet
           solana: {
             createOnLogin: "all-users",
           },
