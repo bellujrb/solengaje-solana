@@ -1,4 +1,9 @@
+'use client';
+
 import { ReviewCampaign } from '../components/campaign-pay/review-campaing_screen';
+
+// Force dynamic rendering to avoid SSR issues with Privy
+export const dynamic = 'force-dynamic';
 
 export default function CampaignPayPage() {
   return (

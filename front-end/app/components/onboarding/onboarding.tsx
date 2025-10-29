@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Button } from "../../../components/button"
 import Icon from "../../../components/icon"
 
@@ -67,9 +68,11 @@ export default function OnboardingPage({ setActiveTab }: OnboardingPageProps) {
       {/* Top Section - Image */}
       <div className="flex-shrink-0 mb-6">
         <div className={`${currentData.bgColor} relative h-[350px] rounded-2xl overflow-hidden shadow-lg`}>
-          <img
+          <Image
             src={currentData.image || "/placeholder.svg"}
             alt={currentData.title}
+            width={400}
+            height={350}
             className="w-full h-full object-cover"
           />
         </div>

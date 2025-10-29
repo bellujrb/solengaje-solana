@@ -1,13 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
-import { ConnectButton } from '../ConnectButton';
-import { useAuth } from "../../hooks/useAuth";
 import { CompanyDataForm } from "./company-data_forms";
 import { PixPaymentScreen } from "./pix-payment";
+
+// Dynamic import with ssr: false to prevent SSR issues
+const ConnectButton = dynamic(() => import('../ConnectButton').then(mod => ({ default: mod.ConnectButton })), {
+  ssr: false,
+  loading: () => <div className="h-10 w-24 bg-gray-200 rounded-lg animate-pulse" />
+});
 
 type ReviewCampaignProps = {
   campaignId?: string;
@@ -24,7 +29,6 @@ export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
   const [isConnecting] = useState(false);
   const [currentStep, setCurrentStep] = useState<'review' | 'company-data' | 'pix-payment'>('review');
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const { isConnected } = useAuth();
   const [campaignData] = useState({
     name: "Summer Beach Collection",
     influencer: {

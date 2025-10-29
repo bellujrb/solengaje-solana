@@ -42,7 +42,7 @@ export function Providers(props: { children: ReactNode }) {
     );
   }
 
-  if (!mounted) {
+  if (!mounted || !privyAppId) {
     return (
       <CampaignProvider>
         {props.children}

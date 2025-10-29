@@ -1,9 +1,8 @@
-import { createPublicClient, http, formatEther } from "viem";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { NextRequest, NextResponse } from "next/server";
+import { getSolanaRpcUrl } from "@/app/lib/solana-config";
 
-const client = createPublicClient({
-  transport: http(),
-});
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -17,17 +16,26 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const balance = await client.getBalance({
-      address: address as `0x${string}`,
-    });
+    const rpcUrl = getSolanaRpcUrl();
+    const connection = new Connection(rpcUrl, "confirmed");
+    
+    let publicKey: PublicKey;
+    try {
+      publicKey = new PublicKey(address);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid Solana address" },
+        { status: 400 }
+      );
+    }
 
-    const formattedBalance = formatEther(balance);
-    const numericBalance = parseFloat(formattedBalance);
+    const balance = await connection.getBalance(publicKey);
+    const formattedBalance = balance / LAMPORTS_PER_SOL;
 
     return NextResponse.json({
-      balance: formattedBalance,
-      numericBalance,
-      wei: balance.toString(),
+      balance: formattedBalance.toFixed(9),
+      numericBalance: formattedBalance,
+      lamports: balance.toString(),
       address,
     });
   } catch (error) {

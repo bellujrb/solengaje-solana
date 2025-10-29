@@ -12,7 +12,7 @@ type DashboardScreenProps = {
 
 export function DashboardScreen({ setActiveTab }: DashboardScreenProps) {
   const { isConnected } = useAuth();
-  const { formattedBalance, isLoading, balance, usdValue } = useWalletBalance();
+  const { formattedBalance, isLoading } = useWalletBalance();
   const { transactions, isLoading: transactionsLoading } = useWalletTransactions();
 
   if (!isConnected) {
@@ -55,9 +55,6 @@ export function DashboardScreen({ setActiveTab }: DashboardScreenProps) {
             <h1 className="text-4xl font-bold text-white">
               {isLoading ? "Loading..." : `${formattedBalance}`}
             </h1>
-            {/* <p className="text-gray-200 text-sm">
-              {usdValue ? `≈ $${usdValue.toLocaleString()}` : balance === 0 ? "$0.00" : "Loading USD value..."}
-            </p> */}
           </div>
           
           <div className="flex space-x-3">

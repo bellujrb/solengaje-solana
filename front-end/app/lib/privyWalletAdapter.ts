@@ -1,6 +1,6 @@
 import { PublicKey, Transaction } from '@solana/web3.js';
 
-export function toAnchorWallet(wallet: any) {
+export function toAnchorWallet(wallet: { address: string; standardWallet?: { signTransaction?: (tx: Transaction) => Promise<Transaction>; signAllTransactions?: (txs: Transaction[]) => Promise<Transaction[]> } }) {
   if (!wallet) return wallet;
   const publicKey = new PublicKey(wallet.address);
   const standard = wallet.standardWallet;
@@ -15,7 +15,11 @@ export function toAnchorWallet(wallet: any) {
     },
     async signAllTransactions(txs: Transaction[]) {
       if (!standard?.signAllTransactions) {
-        return await Promise.all(txs.map((tx) => standard.signTransaction(tx)));
+        if (!standard?.signTransaction) {
+          throw new Error('Privy wallet does not support signAllTransactions or signTransaction');
+        }
+        const signTx = standard.signTransaction;
+        return await Promise.all(txs.map((tx) => signTx(tx)));
       }
       return await standard.signAllTransactions(txs);
     },

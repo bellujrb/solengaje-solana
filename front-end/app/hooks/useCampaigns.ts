@@ -54,15 +54,15 @@ interface BlockchainCampaign {
   currentViews: BN;
   currentShares: BN;
   deadline: BN;
-  status: { draft?: {} } | { active?: {} } | { completed?: {} } | { cancelled?: {} };
+  status: { draft?: Record<string, never> } | { active?: Record<string, never> } | { completed?: Record<string, never> } | { cancelled?: Record<string, never> };
   oracle: PublicKey;
   createdAt: BN;
   lastUpdated: BN;
   paymentMilestones: boolean[];
 }
-function getProgram(anchorWallet: any): Program {
+function getProgram(anchorWallet: unknown): Program {
   const connection = getConnection();
-  const provider = new AnchorProvider(connection, anchorWallet as any, {
+  const provider = new AnchorProvider(connection, anchorWallet as never, {
     commitment: 'confirmed',
     skipPreflight: false,
   });
@@ -75,7 +75,7 @@ function getProgram(anchorWallet: any): Program {
   console.log('Creating Program with IDL address:', idlWithProgramId.address);
   console.log('Expected PROGRAM_ID:', PROGRAM_ID.toBase58());
 
-  return new Program(idlWithProgramId as any, provider);
+  return new Program(idlWithProgramId as never, provider);
 }
 
 
@@ -88,7 +88,6 @@ export function useCampaigns() {
     publicKey,
     isConnected,
     isReady,
-    user,
     anchorWallet,
     sendTransaction,
   } = usePrivyWallet();
@@ -113,16 +112,16 @@ export function useCampaigns() {
       console.log("Fetching campaigns with publicKey:", publicKey.toBase58());
       const program = getProgram(anchorWallet);
 
-      const campaignAccounts = await (program.account as any).campaign.all([
+      const campaignAccounts = await (program.account as { campaign: { all: (filters?: unknown[]) => Promise<Array<{ publicKey: PublicKey; account: unknown }>> } }).campaign.all([
         // Opcional: filtrar por influencer
         // { memcmp: { offset: 8, bytes: publicKey.toBase58() } }
       ]);
 
       console.log("Found campaigns:", campaignAccounts.length);
 
-      const blockchainCampaigns = campaignAccounts.map((account: any) => ({
+      const blockchainCampaigns = campaignAccounts.map((account) => ({
         campaignPDA: account.publicKey,
-        ...account.account,
+        ...(account.account as Record<string, unknown>),
       })) as BlockchainCampaign[];
 
       const converted = convertMultipleCampaigns(blockchainCampaigns);
@@ -147,12 +146,12 @@ export function useCampaigns() {
           throw new Error("Anchor wallet not available");
         }
         const program = getProgram(anchorWallet);
-        const campaignAccount = await (program.account as any).campaign.fetch(
+        const campaignAccount = await (program.account as { campaign: { fetch: (pda: PublicKey) => Promise<unknown> } }).campaign.fetch(
           campaignPDA
         );
         const blockchainCampaign = {
           campaignPDA,
-          ...campaignAccount,
+          ...(campaignAccount as Record<string, unknown>),
         } as BlockchainCampaign;
 
         return convertBlockchainCampaignToUI(blockchainCampaign);
@@ -326,8 +325,8 @@ export function useCampaigns() {
         const signature =
           typeof result === "string"
             ? result
-            : (result as any).hash ||
-              (result as any).signature ||
+            : (result as { hash?: string; signature?: string })?.hash ||
+              (result as { hash?: string; signature?: string })?.signature ||
               String(result);
 
         console.log("Campaign created successfully with signature:", signature);
@@ -367,7 +366,7 @@ export function useCampaigns() {
         };
       }
     },
-    [isConnected, publicKey, anchorWallet, sendTransaction, fetchAllCampaigns]
+    [isConnected, publicKey, anchorWallet, sendTransaction, fetchAllCampaigns, isReady]
   );
 
   const refetch = useCallback(() => {

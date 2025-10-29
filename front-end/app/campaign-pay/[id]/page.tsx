@@ -1,13 +1,13 @@
+'use client';
+
 import { ReviewCampaign } from '../../components/campaign-pay/review-campaing_screen';
+import { use } from 'react';
 
-type CampaignPayPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+// Force dynamic rendering to avoid SSR issues with Privy
+export const dynamic = 'force-dynamic';
 
-export default async function CampaignPayPage({ params }: CampaignPayPageProps) {
-  const { id } = await params;
+export default function CampaignPayPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   
   return (
     <div className="flex flex-col min-h-screen font-sans text-[var(--app-foreground)] mini-app-theme from-[var(--app-background)] to-[var(--app-gray)]">

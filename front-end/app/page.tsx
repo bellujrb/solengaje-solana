@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton } from './components/ConnectButton';
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { Features } from "./components/onboarding/onboarding_features";
 import { Button } from "../components/button";
@@ -17,6 +17,9 @@ import { BudgetTimelineScreen } from "./components/create-campaings/budget_timel
 import { CampaignSuccessScreen } from "./components/create-campaings/campaign_success_screen";
 import { AnalyticsScreen } from "./components/analytics/analytics_screen";
 import { SettingsScreen } from "./components/settings/settings_screen";
+
+// Force dynamic rendering to prevent SSR issues with Privy
+export const dynamic = 'force-dynamic';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");

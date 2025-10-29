@@ -22,18 +22,11 @@ interface BlockchainCampaign {
   currentViews: BN;
   currentShares: BN;
   deadline: BN;
-  status: { draft?: {} } | { active?: {} } | { completed?: {} } | { cancelled?: {} };
+  status: { draft?: Record<string, unknown> } | { active?: Record<string, unknown> } | { completed?: Record<string, unknown> } | { cancelled?: Record<string, unknown> };
   oracle: PublicKey;
   createdAt: BN;
   lastUpdated: BN;
   paymentMilestones: boolean[];
-}
-
-/**
- * Converte um BN de lamports para SOL (com decimais)
- */
-function lamportsToSol(lamports: BN): string {
-  return (lamports.toNumber() / 1_000_000_000).toFixed(4);
 }
 
 /**

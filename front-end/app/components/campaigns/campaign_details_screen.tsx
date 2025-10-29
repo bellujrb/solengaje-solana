@@ -73,7 +73,7 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
           <Icon name="heart" className="mx-auto text-gray-400" size="lg" />
           <h2 className="text-lg font-semibold text-gray-700">Campaign Not Found</h2>
           <p className="text-gray-500 text-sm">
-            The campaign you're looking for doesn't exist or has been removed.
+            The campaign you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Button
             variant="ghost"
@@ -86,8 +86,6 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
       </div>
     );
   }
-
-  const daysRemaining = Math.ceil((new Date(campaign.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
   return (
     <div className="space-y-4 animate-fade-in pb-6">
