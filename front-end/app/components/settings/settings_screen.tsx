@@ -1,7 +1,7 @@
 import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
-import { useAccount, useDisconnect } from "../../hooks/useAccount";
+import { useAuth, useDisconnect } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 
 type SettingsScreenProps = {
@@ -9,7 +9,7 @@ type SettingsScreenProps = {
 };
 
 export function SettingsScreen({ setActiveTab }: SettingsScreenProps) {
-  const { address, isConnected } = useAccount();
+  const { walletAddress: address, isConnected } = useAuth();
   const { disconnect } = useDisconnect();
 
   const handleSignOut = () => {

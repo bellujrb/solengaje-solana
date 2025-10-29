@@ -1,7 +1,7 @@
 import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
-import { useAccount } from "../../hooks/useAccount";
+import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { useWalletBalance } from "../../hooks/useWalletBalance";
 import { useWalletTransactions } from "../../hooks/useWalletTransactions";
@@ -11,7 +11,7 @@ type DashboardScreenProps = {
 };
 
 export function DashboardScreen({ setActiveTab }: DashboardScreenProps) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
   const { formattedBalance, isLoading, balance, usdValue } = useWalletBalance();
   const { transactions, isLoading: transactionsLoading } = useWalletTransactions();
 

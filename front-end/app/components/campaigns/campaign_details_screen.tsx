@@ -1,7 +1,7 @@
 import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
-import { useAccount } from "../../hooks/useAccount";
+import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { useCampaigns } from "../../hooks/useCampaigns";
 
@@ -11,7 +11,7 @@ type CampaignDetailsScreenProps = {
 };
 
 export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDetailsScreenProps) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
   const { campaigns } = useCampaigns();
   
   // Encontrar a campanha pelo ID

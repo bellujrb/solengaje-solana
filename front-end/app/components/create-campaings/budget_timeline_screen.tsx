@@ -3,7 +3,7 @@ import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
 import { useCampaign } from "../../contexts/CampaignContext";
-import { useAccount } from "../../hooks/useAccount";
+import { useAuth } from "../../hooks/useAuth";
 import { useCreateCampaign } from "../../hooks/useCreateCampaign";
 
 type BudgetTimelineScreenProps = {
@@ -12,7 +12,7 @@ type BudgetTimelineScreenProps = {
 
 export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps) {
   const { campaignData, updateBudgetTimeline } = useCampaign();
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
   const { createCampaign: createCampaignHook, result: createResult, resetState } = useCreateCampaign();
   const [totalBudget, setTotalBudget] = useState(campaignData.totalBudget || "0");
   const [durationDays, setDurationDays] = useState(campaignData.durationDays || "30");

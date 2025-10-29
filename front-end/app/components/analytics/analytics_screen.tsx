@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount } from "../../hooks/useAccount";
+import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { AnalyticsHeader } from "./analytics-header";
 import { TimeFilters } from "./time-filters";
@@ -12,7 +12,7 @@ import { Card } from "@/components/card";
 import Icon from "@/components/icon";
 
 export function AnalyticsScreen() {
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
   const [activeTimeFilter, setActiveTimeFilter] = useState("7 days");
   const [selectedMetric, setSelectedMetric] = useState("views");
 
