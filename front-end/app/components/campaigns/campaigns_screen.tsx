@@ -2,7 +2,7 @@ import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
 import { useState } from "react";
-import { useAccount } from "../../hooks/useAccount";
+import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { useCampaigns } from "../../hooks/useCampaigns";
 
@@ -12,7 +12,7 @@ type CampaignsScreenProps = {
 };
 
 export function CampaignsScreen({ setActiveTab, setSelectedCampaignId }: CampaignsScreenProps) {
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
   const { campaigns, loading, error, refetch } = useCampaigns();
   const [activeFilter, setActiveFilter] = useState("All");
 

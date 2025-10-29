@@ -2,7 +2,7 @@
 
 import { ConnectButton } from './components/ConnectButton';
 import { useState } from "react";
-import { useAccount } from "./hooks/useAccount";
+import { useAuth } from "./hooks/useAuth";
 import { Features } from "./components/onboarding/onboarding_features";
 import { Button } from "../components/button";
 import { Home } from "./components/welcome_screen/welcome";
@@ -22,7 +22,7 @@ import { SettingsScreen } from "./components/settings/settings_screen";
 export default function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | undefined>(undefined);
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-[var(--app-foreground)] mini-app-theme from-[var(--app-background)] to-[var(--app-gray)]">

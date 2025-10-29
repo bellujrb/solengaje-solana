@@ -1,8 +1,8 @@
 import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
-import { useState } from "react";
-import { useAccount } from "../../hooks/useAccount";
+import { useState, useEffect } from "react";
+import { usePrivy } from "@privy-io/react-auth";
 import { ConnectButton } from '../ConnectButton';
 
 type ConnectionScreenProps = {
@@ -10,9 +10,13 @@ type ConnectionScreenProps = {
 };
 
 export function ConnectionScreen({ setActiveTab }: ConnectionScreenProps) {
-  const { isConnected } = useAccount();
+  const { authenticated, user } = usePrivy();
   const [instagramConnected, setInstagramConnected] = useState(false);
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
+  const [hasAutoNavigated, setHasAutoNavigated] = useState(false);
+  
+  // Verificar se há wallet conectada
+  const isWalletConnected = authenticated && !!user?.wallet?.address;
 
   const handleConnectInstagram = async () => {
     setIsConnectingInstagram(true);
@@ -27,20 +31,39 @@ export function ConnectionScreen({ setActiveTab }: ConnectionScreenProps) {
     setActiveTab("dashboard");
   };
 
+  // Auto-navigate quando ambos estiverem conectados
+  useEffect(() => {
+    if (isWalletConnected && instagramConnected && !hasAutoNavigated) {
+      setHasAutoNavigated(true);
+      // Pequeno delay para mostrar a confirmação visual
+      setTimeout(() => {
+        setActiveTab("dashboard");
+      }, 1500);
+    }
+  }, [isWalletConnected, instagramConnected, hasAutoNavigated, setActiveTab]);
+
+  // Mostrar loading quando auto-navegando
+  const isAutoNavigating = isWalletConnected && instagramConnected && hasAutoNavigated;
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-2xl font-bold text-black">
-          Connect your wallet and Instagram
+          {isAutoNavigating ? "Redirecting to dashboard..." : "Connect your wallet and Instagram"}
         </h1>
+        {isAutoNavigating && (
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0052FF]"></div>
+          </div>
+        )}
       </div>
 
       {/* Connection Card */}
       <Card className="bg-white p-6 space-y-4">
         {/* Wallet Connection */}
         <div className="space-y-3 mb-2">
-          {isConnected ? (
+          {isWalletConnected ? (
             <>
               <Button
                 variant="ghost"
@@ -52,7 +75,7 @@ export function ConnectionScreen({ setActiveTab }: ConnectionScreenProps) {
               </Button>
               <div className="flex items-center space-x-2 text-green-600 text-sm bg-[#EFF6FF] p-3 rounded-lg">
                 <Icon name="check" className="text-green-600" />
-                <span>Morph Holesky wallet connected</span>
+                <span>Solana wallet connected</span>
               </div>
             </>
           ) : (
@@ -92,7 +115,7 @@ export function ConnectionScreen({ setActiveTab }: ConnectionScreenProps) {
         </div>
 
         {/* Continue Button */}
-        {isConnected && instagramConnected && (
+        {isWalletConnected && instagramConnected && (
           <div className="pt-4">
             <Button
               onClick={handleContinue}

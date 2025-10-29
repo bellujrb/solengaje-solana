@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Privy UserPill base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+
+html {
+  font-family: sans-serif;
+  line-height: 1.15;
+}
+
+button {
+  background-color: transparent;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #111111;

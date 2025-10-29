@@ -5,7 +5,7 @@ import { Button } from "../../../components/button";
 import { Card } from "../../../components/card";
 import Icon from "../../../components/icon";
 import { ConnectButton } from '../ConnectButton';
-import { useAccount } from "../../hooks/useAccount";
+import { useAuth } from "../../hooks/useAuth";
 import { CompanyDataForm } from "./company-data_forms";
 import { PixPaymentScreen } from "./pix-payment";
 
@@ -24,7 +24,7 @@ export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
   const [isConnecting] = useState(false);
   const [currentStep, setCurrentStep] = useState<'review' | 'company-data' | 'pix-payment'>('review');
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const { isConnected } = useAccount();
+  const { isConnected } = useAuth();
   const [campaignData] = useState({
     name: "Summer Beach Collection",
     influencer: {
