@@ -6,10 +6,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-program_sol = "DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3"
+influnest = "DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3"
 
 [programs.devnet]
-program_sol = "DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3"
+influnest = "DS6344gi387M4e6XvS99QQXGiDmY6qQi4xYxqGUjFbB3"
 
 [registry]
 url = "https://api.apr.dev"
@@ -19,4 +19,4 @@ cluster = "Localnet"
 wallet = "/Users/olivmath/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json tests/**/*.ts"
+test = "anchor deploy && yarn run ts-mocha -p ./tsconfig.json tests/**/*.ts"

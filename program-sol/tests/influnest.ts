@@ -1,7 +1,7 @@
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { ProgramSol } from "../../target/types/program_sol";
+import { Influnest } from "../../target/types/influnest";
 import {
   Keypair,
   SystemProgram,
@@ -22,7 +22,7 @@ describe("influnest", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.ProgramSol as Program<ProgramSol>;
+  const program = anchor.workspace.influnest as Program<Influnest>;
 
   // Keypairs for accounts
   const authority = Keypair.generate();
