@@ -1,0 +1,569 @@
+{
+  "address": "HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg",
+  "metadata": {
+    "name": "solengage",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "brand_pay_campaign",
+      "discriminator": [
+        9,
+        73,
+        60,
+        179,
+        156,
+        16,
+        249,
+        190
+      ],
+      "accounts": [
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.influencer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.brand",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.name",
+                "account": "Campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "campaign"
+          ]
+        },
+        {
+          "name": "brand_usdc_account",
+          "writable": true
+        },
+        {
+          "name": "campaign_usdc_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_campaign",
+      "discriminator": [
+        66,
+        10,
+        32,
+        138,
+        122,
+        36,
+        134,
+        202
+      ],
+      "accounts": [
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.influencer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.brand",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.name",
+                "account": "Campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "brand",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "campaign"
+          ]
+        },
+        {
+          "name": "brand_usdc_account",
+          "writable": true
+        },
+        {
+          "name": "campaign_usdc_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_campaign",
+      "discriminator": [
+        111,
+        131,
+        187,
+        98,
+        160,
+        193,
+        114,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "influencer"
+              },
+              {
+                "kind": "account",
+                "path": "brand"
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "influencer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "brand"
+        },
+        {
+          "name": "oracle"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "brand_name",
+          "type": "string"
+        },
+        {
+          "name": "hashtag",
+          "type": "string"
+        },
+        {
+          "name": "target_likes",
+          "type": "u64"
+        },
+        {
+          "name": "target_comments",
+          "type": "u64"
+        },
+        {
+          "name": "target_views",
+          "type": "u64"
+        },
+        {
+          "name": "target_shares",
+          "type": "u64"
+        },
+        {
+          "name": "amount_usdc",
+          "type": "u64"
+        },
+        {
+          "name": "deadline",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "update_campaign_metrics",
+      "discriminator": [
+        171,
+        66,
+        114,
+        144,
+        224,
+        27,
+        184,
+        174
+      ],
+      "accounts": [
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.influencer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.brand",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.name",
+                "account": "Campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle",
+          "signer": true,
+          "relations": [
+            "campaign"
+          ]
+        },
+        {
+          "name": "campaign_usdc_account",
+          "writable": true
+        },
+        {
+          "name": "influencer_usdc_account",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "likes",
+          "type": "u64"
+        },
+        {
+          "name": "comments",
+          "type": "u64"
+        },
+        {
+          "name": "views",
+          "type": "u64"
+        },
+        {
+          "name": "shares",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Campaign",
+      "discriminator": [
+        50,
+        40,
+        49,
+        11,
+        157,
+        220,
+        229,
+        192
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UnauthorizedOracle",
+      "msg": "You are not the authorized oracle for this campaign."
+    },
+    {
+      "code": 6001,
+      "name": "NameTooLong",
+      "msg": "Campaign name is too long (max 50 characters)."
+    },
+    {
+      "code": 6002,
+      "name": "BrandNameTooLong",
+      "msg": "Brand name is too long (max 50 characters)."
+    },
+    {
+      "code": 6003,
+      "name": "HashtagTooLong",
+      "msg": "Hashtag is too long (max 50 characters)."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAmount",
+      "msg": "Amount must be greater than 0."
+    },
+    {
+      "code": 6005,
+      "name": "InvalidDeadline",
+      "msg": "Deadline must be in the future."
+    },
+    {
+      "code": 6006,
+      "name": "NoTargetsSet",
+      "msg": "At least one target metric must be set."
+    },
+    {
+      "code": 6007,
+      "name": "CampaignNotDraft",
+      "msg": "Campaign is not in draft status."
+    },
+    {
+      "code": 6008,
+      "name": "CampaignExpired",
+      "msg": "Campaign has expired."
+    },
+    {
+      "code": 6009,
+      "name": "CampaignNotActive",
+      "msg": "Campaign is not active."
+    },
+    {
+      "code": 6010,
+      "name": "UnauthorizedBrand",
+      "msg": "You are not the authorized brand for this campaign."
+    },
+    {
+      "code": 6011,
+      "name": "CampaignAlreadyCompleted",
+      "msg": "Campaign is already completed."
+    },
+    {
+      "code": 6012,
+      "name": "MathOverflow",
+      "msg": "Math overflow occurred."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidMilestone",
+      "msg": "Invalid payment milestone."
+    },
+    {
+      "code": 6014,
+      "name": "PaymentAlreadyProcessed",
+      "msg": "Payment already processed for this milestone."
+    },
+    {
+      "code": 6015,
+      "name": "InsufficientFunds",
+      "msg": "Insufficient funds for payment."
+    },
+    {
+      "code": 6016,
+      "name": "PaymentExceedsBudget",
+      "msg": "Payment amount exceeds campaign budget."
+    }
+  ],
+  "types": [
+    {
+      "name": "Campaign",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "influencer",
+            "type": "pubkey"
+          },
+          {
+            "name": "brand",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "brand_name",
+            "type": "string"
+          },
+          {
+            "name": "hashtag",
+            "type": "string"
+          },
+          {
+            "name": "target_likes",
+            "type": "u64"
+          },
+          {
+            "name": "target_comments",
+            "type": "u64"
+          },
+          {
+            "name": "target_views",
+            "type": "u64"
+          },
+          {
+            "name": "target_shares",
+            "type": "u64"
+          },
+          {
+            "name": "current_likes",
+            "type": "u64"
+          },
+          {
+            "name": "current_comments",
+            "type": "u64"
+          },
+          {
+            "name": "current_views",
+            "type": "u64"
+          },
+          {
+            "name": "current_shares",
+            "type": "u64"
+          },
+          {
+            "name": "amount_usdc",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "CampaignStatus"
+              }
+            }
+          },
+          {
+            "name": "paid_amount",
+            "type": "u64"
+          },
+          {
+            "name": "oracle",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "payment_milestones",
+            "type": {
+              "array": [
+                "bool",
+                10
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CampaignStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Draft"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Completed"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    }
+  ]
+}

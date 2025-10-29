@@ -19,11 +19,14 @@ import { Solengage } from "../target/types/solengage";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import { getOrCreateAssociatedTokenAccount, createMint, TOKEN_PROGRAM_ID, mintTo } from "@solana/spl-token";
 import { expect } from "chai";
+import idl from "../target/idl/solengage.json";
 
 describe("Solengage - 05 Fetch Campaign Info", () => {
+  // Configure the client to use the devnet cluster
   anchor.setProvider(anchor.AnchorProvider.env());
-  const program = anchor.workspace.solengage as Program<Solengage>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
+  const programId = new anchor.web3.PublicKey("HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg");
+  const program = new anchor.Program(idl as any, programId, provider) as Program<Solengage>;
 
   let influencer: Keypair, brand: Keypair, oracle: Keypair;
   let usdcMint: PublicKey;
