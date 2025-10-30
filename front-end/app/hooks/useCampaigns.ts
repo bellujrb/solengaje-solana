@@ -41,6 +41,7 @@ interface BlockchainCampaign {
   influencer: PublicKey;
   brand: PublicKey;
   name: string;
+  nickname: string;
   brandName: string;
   hashtag: string;
   amountUsdc: BN;

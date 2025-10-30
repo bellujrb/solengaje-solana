@@ -4,11 +4,23 @@ import { Campaign } from '../hooks/useCampaigns';
 
 const USDC_DECIMALS = 6; // USDC has 6 decimals
 
+/**
+ * Formata um número como moeda em português brasileiro
+ */
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
 interface BlockchainCampaign {
   campaignPDA: PublicKey;
   influencer: PublicKey;
   brand: PublicKey;
   name: string;
+  nickname: string;
   brandName: string;
   hashtag: string;
   amountUsdc: BN;
@@ -128,7 +140,7 @@ export function convertBlockchainCampaignToUI(
     id: blockchainCampaign.campaignPDA.toBase58(),
     brand: blockchainCampaign.brand.toBase58(),
     creator: blockchainCampaign.influencer.toBase58(),
-    totalValue: amountUsdcValue.toFixed(1),
+    totalValue: formatCurrency(amountUsdcValue),
     deadline: blockchainCampaign.deadline.toString(),
     targetLikes: blockchainCampaign.targetLikes.toString(),
     targetComments: blockchainCampaign.targetComments.toString(),
@@ -142,10 +154,10 @@ export function convertBlockchainCampaignToUI(
     status,
     progress,
     title: blockchainCampaign.name,
-    description: blockchainCampaign.hashtag, // Using hashtag as description fallback
-    instagramUsername: '', // Not available in new IDL
+    description: blockchainCampaign.hashtag, // hashtag from blockchain
+    instagramUsername: blockchainCampaign.nickname || '', // nickname from blockchain as Instagram username
     createdAt: blockchainCampaign.createdAt.toString(),
-    postsCount: 0, // Not available in new IDL
+    postsCount: 0, // Not stored in blockchain
     endDate: timestampToISO(blockchainCampaign.deadline),
   };
 }
