@@ -77,4 +77,3 @@ Antes de codar, vamos **mapear EXATAMENTE** cada function: **inputs/outputs, aut
    - Frontend hooks (React/TSX)
    - Oracle bot exemplo (Node)
 3. **Teste**: Devnet → Mainnet.
-
