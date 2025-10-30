@@ -4,8 +4,6 @@ import Icon from "../../../components/icon";
 import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { useCampaigns } from "../../hooks/useCampaigns";
-import { useActivateCampaign } from "../../hooks/useActivateCampaign";
-import { useRouter } from "next/navigation";
 
 type CampaignDetailsScreenProps = {
   setActiveTab: (tab: string) => void;
@@ -15,8 +13,6 @@ type CampaignDetailsScreenProps = {
 export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDetailsScreenProps) {
   const { isConnected } = useAuth();
   const { campaigns } = useCampaigns();
-  const { loading: activating } = useActivateCampaign();
-  const router = useRouter();
   
   // Encontrar a campanha pelo ID
   const campaign = campaigns.find(c => c.id === campaignId);
