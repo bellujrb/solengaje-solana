@@ -246,6 +246,7 @@ export function useCampaigns() {
         const tx: Transaction = await program.methods
           .createCampaign(
             params.name,
+            params.name, // nickname (using campaign name as nickname)
             params.brandName || params.name, // brand_name
             params.description, // hashtag (reusing description for now)
             new BN(params.targetLikes),

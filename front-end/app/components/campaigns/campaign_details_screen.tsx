@@ -46,7 +46,6 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
     
     try {
       await navigator.clipboard.writeText(activationLink);
-      alert('Link de ativação copiado!');
     } catch (err) {
       console.error('Erro ao copiar link:', err);
     }

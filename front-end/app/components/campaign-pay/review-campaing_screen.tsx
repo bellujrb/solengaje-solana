@@ -15,6 +15,8 @@ type ReviewCampaignProps = {
 
 export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
   const [isActivating, setIsActivating] = useState(false);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const router = useRouter();
   const { campaigns } = useCampaigns();
   const { activateCampaign } = useActivateCampaign();
@@ -30,7 +32,6 @@ export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
 
   const handleActivateCampaign = async () => {
     if (!campaign) {
-      alert('Campanha não encontrada');
       return;
     }
 
@@ -51,13 +52,16 @@ export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
       });
 
       if (result.success) {
-        alert('Campanha ativada com sucesso!');
-        router.push('/');
+        // Save transaction hash if available
+        if (result.signature) {
+          setTransactionHash(result.signature);
+        }
+        // Show success screen instead of redirecting
+        setShowSuccessScreen(true);
       } else {
-        alert(`Erro ao ativar campanha: ${result.error}`);
+        alert(`Erro ao ativar campanha: ${result.error || 'Erro desconhecido'}`);
       }
     } catch (error) {
-      console.error('Error activating campaign:', error);
       alert(`Erro ao ativar campanha: ${error}`);
     } finally {
       setIsActivating(false);
@@ -87,6 +91,146 @@ export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
     );
   }
 
+  // Success Screen
+  if (showSuccessScreen) {
+    return (
+      <div className="space-y-6 animate-fade-in pb-6">
+        {/* Success Header */}
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+            <Icon name="check" className="text-green-600" size="lg" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-black">Campaign Activated!</h1>
+            <p className="text-gray-600">Your campaign is now active and ready</p>
+          </div>
+        </div>
+
+        {/* Campaign Summary Card */}
+        <Card className="bg-white p-6 space-y-4">
+          <h2 className="text-lg font-bold text-black">Campaign Summary</h2>
+          
+          <div className="space-y-3 pt-2 border-t border-gray-200">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Campaign Name:</span>
+              <span className="font-medium">{campaign.title}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Influencer:</span>
+              <span className="font-medium">{campaign.instagramUsername || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total Value:</span>
+              <span className="font-medium text-green-600">${campaign.totalValue}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">End Date:</span>
+              <span className="font-medium">{campaign.endDate}</span>
+            </div>
+            
+            {/* Success Metrics */}
+            <div className="pt-2 border-t border-gray-200">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600 font-medium">Campaign Targets:</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Views:</span>
+                <span className="font-medium">{campaign.targetViews}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Likes:</span>
+                <span className="font-medium">{campaign.targetLikes}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Comments:</span>
+                <span className="font-medium">{campaign.targetComments}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Shares:</span>
+                <span className="font-medium">{campaign.targetShares}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Blockchain Transaction Info */}
+        {transactionHash && (
+          <Card className="bg-green-50 p-6 space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <Icon name="check" className="text-green-600" size="sm" />
+              </div>
+              <div className="space-y-2 flex-1">
+                <h3 className="font-semibold text-black">Blockchain Transaction</h3>
+                <p className="text-sm text-gray-700">
+                  Your campaign has been successfully activated on the blockchain!
+                </p>
+                <div className="flex items-center space-x-2 flex-wrap">
+                  <span className="text-xs text-gray-500">Transaction Hash:</span>
+                  <code className="text-xs bg-white px-2 py-1 rounded border break-all">
+                    {transactionHash.slice(0, 10)}...{transactionHash.slice(-8)}
+                  </code>
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(transactionHash);
+                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="px-2 py-1 text-xs"
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Process Information */}
+        <Card className="bg-blue-50 p-6 space-y-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+              <Icon name="lightning" className="text-blue-600" size="sm" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-black">What&apos;s Next?</h3>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Your campaign is now live! The influencer can start creating content and 
+                tracking metrics. Payments will be automatically distributed as milestones 
+                are achieved. You can monitor the progress in your dashboard.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Campaign Status */}
+        <Card className="bg-gray-50 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-black">Campaign Status</h3>
+              <p className="text-sm text-gray-600">Campaign is now active</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              <span className="text-sm font-medium text-green-700">Active</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          <Button
+            onClick={() => router.push('/')}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
+          >
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Review Screen
   return (
     <div className="space-y-6 animate-fade-in pb-6">
       {/* Page Title */}
