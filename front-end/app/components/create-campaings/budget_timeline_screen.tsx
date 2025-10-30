@@ -41,7 +41,8 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
   const formatDisplayValue = (value: string): string => {
     if (!value || value === '0') return '';
     
-    const numericValue = parseFloat(value);
+    // First remove any commas, then parse as float
+    const numericValue = parseFloat(value.replace(/,/g, ''));
     if (isNaN(numericValue)) return '';
     
     return numericValue.toLocaleString('en-US', {

@@ -63,7 +63,9 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const createCampaign = async () => {
     try {
       // Validar dados antes de criar
-      const totalBudget = parseFloat(campaignData.totalBudget);
+      // Remove commas from budget string before parsing
+      const budgetString = campaignData.totalBudget.replace(/,/g, '');
+      const totalBudget = parseFloat(budgetString);
       if (isNaN(totalBudget) || totalBudget <= 0) {
         return {
           success: false,
