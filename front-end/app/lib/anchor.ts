@@ -1,4 +1,4 @@
-import { AnchorProvider, Program, web3 } from '@coral-xyz/anchor';
+import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import idl from './solengage.json';
 import { getSolanaRpcUrl } from './solana-config';
@@ -12,7 +12,7 @@ export function getConnection() {
   return new Connection(rpcUrl, 'confirmed');
 }
 
-export function getProgram(wallet: any) {
+export function getProgram(wallet: unknown) {
   if (!wallet) {
     throw new Error('Wallet is required');
   }
@@ -21,17 +21,17 @@ export function getProgram(wallet: any) {
   
   // Criar um adapter compatível com Anchor
   const anchorWallet = {
-    publicKey: wallet.publicKey || (typeof wallet.address === 'string' ? new PublicKey(wallet.address) : wallet),
-    signTransaction: wallet.signTransaction || wallet,
-    signAllTransactions: wallet.signAllTransactions || wallet,
+    publicKey: (wallet as { publicKey?: PublicKey; address?: string }).publicKey || (typeof (wallet as { address?: string }).address === 'string' ? new PublicKey((wallet as { address: string }).address) : wallet),
+    signTransaction: (wallet as { signTransaction?: unknown }).signTransaction || wallet,
+    signAllTransactions: (wallet as { signAllTransactions?: unknown }).signAllTransactions || wallet,
   };
   
-  const provider = new AnchorProvider(connection, anchorWallet as any, {
+  const provider = new AnchorProvider(connection, anchorWallet as never, {
     commitment: 'confirmed',
     skipPreflight: false,
   });
   
-  return new Program(idl as any, provider);
+  return new Program(idl as never, provider);
 }
 
 // PDA helpers
