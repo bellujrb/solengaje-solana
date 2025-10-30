@@ -26,7 +26,7 @@ export interface Campaign {
   currentViews: string;
   currentShares: string;
   paidAmount: string;
-  status: "ACTIVE" | "COMPLETED" | "PENDING" | "EXPIRED" | "CANCELLED";
+  status: "ACTIVE" | "COMPLETED" | "PENDING" | "EXPIRED" | "CANCELLED" | "DRAFT";
   progress: number;
   title: string;
   description: string;

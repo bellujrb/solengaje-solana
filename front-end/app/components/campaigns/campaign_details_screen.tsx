@@ -4,6 +4,10 @@ import Icon from "../../../components/icon";
 import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { useCampaigns } from "../../hooks/useCampaigns";
+import { useActivateCampaign } from "../../hooks/useActivateCampaign";
+import { PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
+import { useRouter } from "next/navigation";
 
 type CampaignDetailsScreenProps = {
   setActiveTab: (tab: string) => void;
@@ -13,6 +17,8 @@ type CampaignDetailsScreenProps = {
 export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDetailsScreenProps) {
   const { isConnected } = useAuth();
   const { campaigns } = useCampaigns();
+  const { activateCampaign, loading: activating } = useActivateCampaign();
+  const router = useRouter();
   
   // Encontrar a campanha pelo ID
   const campaign = campaigns.find(c => c.id === campaignId);
@@ -24,6 +30,7 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
       case "COMPLETED":
         return "bg-blue-50 text-blue-600 border-blue-300";
       case "PENDING":
+      case "DRAFT":
         return "bg-yellow-50 text-yellow-600 border-yellow-300";
       case "EXPIRED":
         return "bg-red-50 text-red-600 border-red-300";
@@ -31,6 +38,26 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
         return "bg-gray-50 text-gray-600 border-gray-300";
       default:
         return "bg-gray-50 text-gray-600 border-gray-300";
+    }
+  };
+
+  const handleActivateCampaign = async () => {
+    if (!campaign) return;
+
+    // Navigate to payment page
+    router.push(`/campaign-pay/${campaign.id}`);
+  };
+
+  const handleCopyActivationLink = async () => {
+    if (!campaign) return;
+
+    const activationLink = `${window.location.origin}/campaign-pay/${campaign.id}`;
+    
+    try {
+      await navigator.clipboard.writeText(activationLink);
+      alert('Link de ativação copiado!');
+    } catch (err) {
+      console.error('Erro ao copiar link:', err);
     }
   };
 
@@ -130,11 +157,29 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
           </div>
         </div>
 
-        <Button
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
-        >
-          Update Campaign Metrics
-        </Button>
+        {campaign.status === 'PENDING' || campaign.status === 'DRAFT' ? (
+          <div className="space-y-2">
+            <Button
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
+              onClick={handleCopyActivationLink}
+            >
+              Copiar Link de Ativação
+            </Button>
+            <Button
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium"
+              onClick={handleActivateCampaign}
+              disabled={activating}
+            >
+              {activating ? 'Ativando...' : 'Ativar Campanha'}
+            </Button>
+          </div>
+        ) : campaign.status === 'ACTIVE' ? (
+          <Button
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
+          >
+            Update Campaign Metrics
+          </Button>
+        ) : null}
       </Card>
 
       {/* Campaign Progress Card */}

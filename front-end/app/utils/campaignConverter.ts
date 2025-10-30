@@ -70,6 +70,7 @@ function calculateCampaignStatus(
   const isFunded = paidAmount.gte(amountUsdc);
   const isCompleted = currentLikes.gte(targetLikes) && currentViews.gte(targetViews);
 
+  // Check blockchain status first
   if ('cancelled' in status && status.cancelled) {
     return 'CANCELLED';
   }
@@ -78,11 +79,15 @@ function calculateCampaignStatus(
     return 'EXPIRED';
   }
 
+  if ('draft' in status && status.draft) {
+    return 'DRAFT';
+  }
+
   if (isCompleted || ('completed' in status && status.completed)) {
     return 'COMPLETED';
   }
 
-  if (!isFunded || ('draft' in status && status.draft)) {
+  if (!isFunded) {
     return 'PENDING';
   }
 

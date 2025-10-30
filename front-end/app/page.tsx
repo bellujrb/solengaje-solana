@@ -6,7 +6,6 @@ import { useAuth } from "./hooks/useAuth";
 import { Features } from "./components/onboarding/onboarding_features";
 import { Button } from "../components/button";
 import OnboardingPage from "./components/onboarding/onboarding";
-import { ConnectionScreen } from "./components/connection/connection_screen";
 import { DashboardScreen } from "./components/dashboard/dashboard_screen";
 import { BottomNavigation } from "./components/navigation/bottom_navigation";
 import { CampaignsScreen } from "./components/campaigns/campaigns_screen";
@@ -42,7 +41,6 @@ export default function App() {
       <div className="w-full max-w-md mx-auto px-4 py-3">
         <main className={`flex-1 ${(activeTab === "dashboard" || activeTab === "campaigns" || activeTab === "campaign-details" || activeTab === "analytics" || activeTab === "settings" || activeTab === "campaign-basics" || activeTab === "success-metrics" || activeTab === "budget-timeline" || activeTab === "campaign-success") ? "pb-20" : ""}`}>
           {activeTab === "home" && <OnboardingPage setActiveTab={setActiveTab} />}
-          {activeTab === "connection" && <ConnectionScreen setActiveTab={setActiveTab} />}
           {activeTab === "features" && <Features setActiveTab={setActiveTab} />}
           {activeTab === "dashboard" && <DashboardScreen setActiveTab={setActiveTab} />}
           {activeTab === "campaigns" && <CampaignsScreen setActiveTab={setActiveTab} setSelectedCampaignId={setSelectedCampaignId} />}
