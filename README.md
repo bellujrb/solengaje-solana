@@ -115,7 +115,8 @@ Example:
 
 ## 📚 Documentation
 
-See [CLAUDE.md](./CLAUDE.md) for comprehensive documentation including:
+- **[Backend API Documentation](./backend/API_DOCUMENTATION.md)**: Detailed reference for all Supabase Edge Functions.
+- See [CLAUDE.md](./CLAUDE.md) for comprehensive architecture documentation including:
 - Detailed workflows
 - Smart contract instructions
 - Database schema

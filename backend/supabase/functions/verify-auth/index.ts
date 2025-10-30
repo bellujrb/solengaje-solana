@@ -53,7 +53,8 @@ serve(async (req: Request) => {
     }
 
     const privyUserId = payload.sub as string;
-    const walletAddress = payload.wal as string; // Assuming 'wal' field contains the wallet address
+    // Correctly extract wallet address from the nested structure
+    const walletAddress = (payload as any).wallet?.address;
 
     if (!privyUserId || !walletAddress) {
       return new Response(JSON.stringify({ error: "Privy user ID or wallet address not found in token" }), {
@@ -62,10 +63,19 @@ serve(async (req: Request) => {
       });
     }
 
-    return new Response(JSON.stringify({ privyUserId, walletAddress }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Respond with the format specified in the plan
+    return new Response(
+      JSON.stringify({
+        success: true,
+        verified: true,
+        privy_user_id: privyUserId,
+        wallet: walletAddress,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("JWT verification failed:", error);
     return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
