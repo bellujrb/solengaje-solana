@@ -145,6 +145,18 @@ pub mod solengage {
 
         if new_progress >= 100 {
             ctx.accounts.campaign.status = CampaignStatus::Completed;
+
+            // Close the campaign account and refund rent to oracle
+            let campaign_lamports = ctx.accounts.campaign.to_account_info().lamports();
+
+            **ctx.accounts.campaign.to_account_info().try_borrow_mut_lamports()? = 0;
+            **ctx.accounts.oracle.to_account_info().try_borrow_mut_lamports()? = ctx
+                .accounts
+                .oracle
+                .to_account_info()
+                .lamports()
+                .checked_add(campaign_lamports)
+                .ok_or(ErrorCode::MathOverflow)?;
         }
 
         Ok(())
@@ -153,11 +165,11 @@ pub mod solengage {
     pub fn cancel_campaign(ctx: Context<CancelCampaign>) -> Result<()> {
         require!(ctx.accounts.campaign.status != CampaignStatus::Completed, ErrorCode::CampaignAlreadyCompleted);
         require_keys_eq!(ctx.accounts.brand.key(), ctx.accounts.campaign.brand, ErrorCode::UnauthorizedBrand);
-        
+
         if ctx.accounts.campaign.status == CampaignStatus::Active {
             let remaining_amount = ctx.accounts.campaign.amount_usdc.checked_sub(ctx.accounts.campaign.paid_amount)
                 .ok_or(ErrorCode::MathOverflow)?;
-            
+
             if remaining_amount > 0 {
                 let bump = ctx.bumps.campaign;
                 let seeds = &[
@@ -179,13 +191,17 @@ pub mod solengage {
                 token::transfer(cpi_ctx, remaining_amount)?;
             }
         }
-        
+
         ctx.accounts.campaign.status = CampaignStatus::Cancelled;
         ctx.accounts.campaign.last_updated = Clock::get()?.unix_timestamp;
-        
+
         Ok(())
     }
 
+    pub fn close_campaign(ctx: Context<CloseCampaign>) -> Result<()> {
+        require_eq!(ctx.accounts.campaign.status, CampaignStatus::Completed, ErrorCode::CampaignNotInTerminalState);
+        Ok(())
+    }
 
 }
 
@@ -235,12 +251,14 @@ pub struct UpdateCampaignMetrics<'info> {
         bump
     )]
     pub campaign: Account<'info, Campaign>,
+    #[account(mut)]
     pub oracle: Signer<'info>,
     #[account(mut)]
     pub campaign_usdc_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub influencer_usdc_account: Account<'info, TokenAccount>,
     pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -259,6 +277,21 @@ pub struct CancelCampaign<'info> {
     #[account(mut)]
     pub campaign_usdc_account: Account<'info, TokenAccount>,
     pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct CloseCampaign<'info> {
+    #[account(
+        mut,
+        close = oracle,
+        has_one = oracle,
+        seeds = [b"campaign", campaign.influencer.key().as_ref(), campaign.brand.key().as_ref(), campaign.name.as_bytes()],
+        bump
+    )]
+    pub campaign: Account<'info, Campaign>,
+    #[account(mut)]
+    /// CHECK: Oracle receives the rent refund
+    pub oracle: AccountInfo<'info>,
 }
 
 #[account]
@@ -432,4 +465,6 @@ pub enum ErrorCode {
     InsufficientFunds,
     #[msg("Payment amount exceeds campaign budget.")]
     PaymentExceedsBudget,
+    #[msg("Campaign must be in Completed or Cancelled status.")]
+    CampaignNotInTerminalState,
 }

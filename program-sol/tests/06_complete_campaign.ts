@@ -1,3 +1,19 @@
+/**
+ * Testes Solengage - Especificação BDD
+ *
+ * Feature: Fechamento Automático de Campanha ao Atingir 100% de Conclusão
+ *
+ * Cenário: Campanha é automaticamente fechada quando atinge 100% das metas
+ * Given uma campanha ativa com metas definidas (ex: 10 likes)
+ * And o influenciador já recebeu pagamentos parciais
+ * When o oracle atualiza as métricas para atingir 100% das metas
+ * Then todos os marcos de pagamento pendentes devem ser processados (até completar 100% do valor)
+ * And o status da campanha deve mudar para "Completed"
+ * And a conta da campanha deve ser automaticamente fechada
+ * And o aluguel (rent) da conta deve ser devolvido para o oracle
+ * And o saldo do influenciador deve refletir o pagamento total da campanha
+ */
+
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Solengage } from "../target/types/solengage";
@@ -8,6 +24,7 @@ import {
   createAccount,
   mintTo,
   getAccount,
+  getOrCreateAssociatedTokenAccount,
 } from "@solana/spl-token";
 import { assert } from "chai";
 
@@ -117,12 +134,15 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       program.programId
     );
 
-    // Derive PDA for the campaign's USDC vault
-    campaignUsdcAccount = await getAssociatedTokenAddress(
+    // Create Campaign's USDC Account (vault) - using getOrCreateAssociatedTokenAccount for PDA
+    const campaignUsdcAccountInfo = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      brand,
       usdcMint,
       campaignPda,
       true // allowOwnerOffCurve - PDA can be owner
     );
+    campaignUsdcAccount = campaignUsdcAccountInfo.address;
   });
 
   it("should create, activate, complete, and auto-close a campaign, refunding rent to oracle", async () => {
@@ -145,18 +165,18 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
         amountUsdc,
         deadline
       )
-      .accounts({
+      .accountsStrict({
         campaign: campaignPda,
-        influencer: influencer.publicKey, // Influencer is payer in current code
+        influencer: influencer.publicKey,
         brand: brand.publicKey,
         oracle: oracle.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .signers([influencer]) // Influencer signs as payer
+      .signers([influencer])
       .rpc();
 
     let campaignAccount = await program.account.campaign.fetch(campaignPda);
-    assert.equal(campaignAccount.status.draft, true);
+    assert.deepEqual(campaignAccount.status, { draft: {} });
     console.log(
       "Campaign created with status:",
       Object.keys(campaignAccount.status)[0]
@@ -170,7 +190,7 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
 
     await program.methods
       .brandPayCampaign()
-      .accounts({
+      .accountsStrict({
         campaign: campaignPda,
         brand: brand.publicKey,
         brandUsdcAccount: brandUsdcAccount,
@@ -181,7 +201,7 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       .rpc();
 
     campaignAccount = await program.account.campaign.fetch(campaignPda);
-    assert.equal(campaignAccount.status.active, true);
+    assert.deepEqual(campaignAccount.status, { active: {} });
     assert.equal(campaignAccount.amountUsdc.toString(), amountUsdc.toString());
     assert.equal(
       (
@@ -193,7 +213,7 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       (
         await getAccount(provider.connection, brandUsdcAccount)
       ).amount.toString(),
-      initialBrandUsdcBalance.sub(amountUsdc).toString()
+      (initialBrandUsdcBalance - BigInt(amountUsdc.toString())).toString()
     );
     console.log(
       "Campaign paid and active. Campaign USDC balance:",
@@ -228,13 +248,13 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
         targetViews,
         targetShares
       )
-      .accounts({
+      .accountsStrict({
         campaign: campaignPda,
         oracle: oracle.publicKey,
         campaignUsdcAccount: campaignUsdcAccount,
         influencerUsdcAccount: influencerUsdcAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: anchor.web3.SystemProgram.programId, // Added for CPI
+        systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([oracle])
       .rpc();
@@ -286,7 +306,7 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
     ).amount;
     assert.equal(
       finalInfluencerUsdcBalance.toString(),
-      initialInfluencerUsdcBalance.add(amountUsdc).toString(),
+      (initialInfluencerUsdcBalance + BigInt(amountUsdc.toString())).toString(),
       "Influencer did not receive full USDC payment."
     );
     console.log(
