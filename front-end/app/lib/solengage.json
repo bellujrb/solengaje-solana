@@ -1,5 +1,5 @@
 {
-  "address": "HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg",
+  "address": "2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5",
   "metadata": {
     "name": "solengage",
     "version": "0.1.0",
@@ -9,6 +9,36 @@
   "instructions": [
     {
       "name": "brand_pay_campaign",
+      "docs": [
+        "Activates a campaign by transferring USDC from brand to campaign vault.",
+        "",
+        "Transitions campaign from Draft → Active status. The full campaign amount",
+        "must be transferred at once (no partial funding).",
+        "",
+        "# Accounts",
+        "",
+        "* `campaign` - Campaign PDA (must be in Draft status)",
+        "* `brand` - Brand signer (must match campaign.brand)",
+        "* `brand_usdc_account` - Brand's USDC token account (source)",
+        "* `campaign_usdc_account` - Campaign vault token account (destination, owned by campaign PDA)",
+        "* `token_program` - SPL Token program",
+        "",
+        "# State Transitions",
+        "",
+        "* `Draft` → `Active` (success)",
+        "",
+        "# Errors",
+        "",
+        "* `CampaignNotDraft` - Campaign is not in Draft status",
+        "* `CampaignExpired` - Deadline has passed",
+        "* Anchor errors if token transfer fails (insufficient balance, etc.)",
+        "",
+        "# Security",
+        "",
+        "- Validates brand signature matches campaign.brand",
+        "- Validates deadline hasn't expired",
+        "- Transfers exact amount_usdc (no partial funding)"
+      ],
       "discriminator": [
         9,
         73,
@@ -22,6 +52,12 @@
       "accounts": [
         {
           "name": "campaign",
+          "docs": [
+            "Conta da campanha.",
+            "",
+            "Deve ser mutável, possuir a marca correta e ser uma PDA derivada de",
+            "`[\"campaign\", campaign.influencer, campaign.brand, campaign.name]`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -58,6 +94,9 @@
         },
         {
           "name": "brand",
+          "docs": [
+            "Conta da marca (assinante)."
+          ],
           "writable": true,
           "signer": true,
           "relations": [
@@ -66,14 +105,23 @@
         },
         {
           "name": "brand_usdc_account",
+          "docs": [
+            "Conta de token USDC da marca (fonte da transferência)."
+          ],
           "writable": true
         },
         {
           "name": "campaign_usdc_account",
+          "docs": [
+            "Conta de token USDC do cofre da campanha (destino da transferência)."
+          ],
           "writable": true
         },
         {
           "name": "token_program",
+          "docs": [
+            "Programa SPL Token."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
@@ -81,6 +129,36 @@
     },
     {
       "name": "cancel_campaign",
+      "docs": [
+        "Cancels a campaign and refunds remaining USDC to the brand.",
+        "",
+        "Only callable by the brand. If campaign is Active, refunds the difference",
+        "between amount_usdc and paid_amount. If Draft, simply marks as Cancelled.",
+        "",
+        "# Accounts",
+        "",
+        "* `campaign` - Campaign PDA (cannot be Completed)",
+        "* `brand` - Brand signer (must match campaign.brand)",
+        "* `brand_usdc_account` - Brand's USDC account (refund destination)",
+        "* `campaign_usdc_account` - Campaign vault (refund source)",
+        "* `token_program` - SPL Token program",
+        "",
+        "# State Transitions",
+        "",
+        "* `Draft` → `Cancelled` (no refund needed)",
+        "* `Active` → `Cancelled` (refunds remaining USDC)",
+        "",
+        "# Errors",
+        "",
+        "* `CampaignAlreadyCompleted` - Cannot cancel completed campaigns",
+        "* `UnauthorizedBrand` - Signer doesn't match campaign.brand",
+        "",
+        "# Security",
+        "",
+        "- Only brand can cancel (influencer cannot)",
+        "- Refund amount = amount_usdc - paid_amount (ensures fairness)",
+        "- Uses PDA signer pattern for vault authority"
+      ],
       "discriminator": [
         66,
         10,
@@ -94,6 +172,12 @@
       "accounts": [
         {
           "name": "campaign",
+          "docs": [
+            "Conta da campanha.",
+            "",
+            "Deve ser mutável, possuir a marca correta e ser uma PDA derivada de",
+            "`[\"campaign\", campaign.influencer, campaign.brand, campaign.name]`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -130,6 +214,9 @@
         },
         {
           "name": "brand",
+          "docs": [
+            "Conta da marca (assinante)."
+          ],
           "writable": true,
           "signer": true,
           "relations": [
@@ -138,21 +225,175 @@
         },
         {
           "name": "brand_usdc_account",
+          "docs": [
+            "Conta de token USDC da marca (destino do reembolso)."
+          ],
           "writable": true
         },
         {
           "name": "campaign_usdc_account",
+          "docs": [
+            "Conta de token USDC do cofre da campanha (fonte do reembolso)."
+          ],
           "writable": true
         },
         {
           "name": "token_program",
+          "docs": [
+            "Programa SPL Token."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": []
     },
     {
+      "name": "close_campaign",
+      "docs": [
+        "Closes a completed campaign account and refunds rent to oracle.",
+        "",
+        "This instruction is typically called automatically by update_campaign_metrics",
+        "when progress reaches 100%. Can also be called manually if needed.",
+        "",
+        "# Accounts",
+        "",
+        "* `campaign` - Campaign PDA (must be Completed, will be closed)",
+        "* `oracle` - Oracle account (receives rent refund)",
+        "",
+        "# State Requirements",
+        "",
+        "* Campaign status must be `Completed`",
+        "",
+        "# Errors",
+        "",
+        "* `CampaignNotInTerminalState` - Campaign is not Completed",
+        "",
+        "# Rent Refund",
+        "",
+        "The rent-exempt lamports (~0.004 SOL) are transferred to the oracle",
+        "as compensation for monitoring the campaign to completion."
+      ],
+      "discriminator": [
+        65,
+        49,
+        110,
+        7,
+        63,
+        238,
+        206,
+        77
+      ],
+      "accounts": [
+        {
+          "name": "campaign",
+          "docs": [
+            "The campaign account to be closed.",
+            "",
+            "Must be mutable, have the correct oracle, and be a PDA derived from",
+            "`[\"campaign\", campaign.influencer, campaign.brand, campaign.name]`.",
+            "The `close` constraint ensures the account is closed and rent refunded to the oracle."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.influencer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.brand",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.name",
+                "account": "Campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle",
+          "docs": [
+            "The oracle account that receives the rent refund from the closed campaign account."
+          ],
+          "writable": true,
+          "relations": [
+            "campaign"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "create_campaign",
+      "docs": [
+        "Creates a new influencer marketing campaign in Draft status.",
+        "",
+        "# Arguments",
+        "",
+        "* `name` - Unique campaign name (max 50 chars), used in PDA derivation",
+        "* `nickname` - Influencer handle/nickname (max 50 chars)",
+        "* `brand_name` - Brand name (max 50 chars)",
+        "* `hashtag` - Campaign hashtag (max 50 chars)",
+        "* `target_likes` - Target number of likes",
+        "* `target_comments` - Target number of comments",
+        "* `target_views` - Target number of views",
+        "* `target_shares` - Target number of shares",
+        "* `amount_usdc` - Total campaign budget in USDC (6 decimals)",
+        "* `deadline` - Unix timestamp when campaign expires",
+        "",
+        "# Accounts",
+        "",
+        "* `campaign` - PDA to initialize, seeds: [\"campaign\", influencer, brand, name]",
+        "* `influencer` - Signer and payer (campaign creator)",
+        "* `brand` - Brand public key (not signer yet)",
+        "* `oracle` - Authorized oracle public key for metric updates",
+        "",
+        "# Errors",
+        "",
+        "* `NameTooLong` - Name exceeds 50 characters",
+        "* `NicknameTooLong` - Nickname exceeds 50 characters",
+        "* `BrandNameTooLong` - Brand name exceeds 50 characters",
+        "* `HashtagTooLong` - Hashtag exceeds 50 characters",
+        "* `InvalidAmount` - Amount is 0",
+        "* `InvalidDeadline` - Deadline is in the past",
+        "* `NoTargetsSet` - All target metrics are 0",
+        "",
+        "# Example",
+        "",
+        "```ignore",
+        "// Create campaign with 1000 likes target, 100 USDC budget, 7 days deadline",
+        "program.methods",
+        ".createCampaign(",
+        "\"Summer Campaign\",",
+        "\"@influencer\",",
+        "\"Cool Brand\",",
+        "\"#summer2024\",",
+        "new BN(1000), // likes",
+        "new BN(0), new BN(0), new BN(0),",
+        "new BN(100_000_000), // 100 USDC",
+        "new BN(Date.now()/1000 + 604800) // +7 days",
+        ")",
+        ".accounts({...})",
+        ".rpc();",
+        "```"
+      ],
       "discriminator": [
         111,
         131,
@@ -166,6 +407,11 @@
       "accounts": [
         {
           "name": "campaign",
+          "docs": [
+            "Conta da campanha a ser inicializada.",
+            "",
+            "PDA derivada de `[\"campaign\", influencer, brand, name]`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -199,23 +445,39 @@
         },
         {
           "name": "influencer",
+          "docs": [
+            "Conta do influenciador, também pagador da inicialização."
+          ],
           "writable": true,
           "signer": true
         },
         {
-          "name": "brand"
+          "name": "brand",
+          "docs": [
+            "Conta da marca (SystemAccount)."
+          ]
         },
         {
-          "name": "oracle"
+          "name": "oracle",
+          "docs": [
+            "Conta do oráculo."
+          ]
         },
         {
           "name": "system_program",
+          "docs": [
+            "Programa do sistema Solana."
+          ],
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
           "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "nickname",
           "type": "string"
         },
         {
@@ -254,6 +516,51 @@
     },
     {
       "name": "update_campaign_metrics",
+      "docs": [
+        "Updates campaign metrics and triggers automatic milestone payments.",
+        "",
+        "Only callable by the authorized oracle. Calculates progress based on updated",
+        "metrics and pays out any newly achieved milestones (10%, 20%, ..., 100%).",
+        "Automatically closes the campaign when 100% is reached.",
+        "",
+        "# Arguments",
+        "",
+        "* `likes` - Current number of likes",
+        "* `comments` - Current number of comments",
+        "* `views` - Current number of views",
+        "* `shares` - Current number of shares",
+        "",
+        "# Accounts",
+        "",
+        "* `campaign` - Campaign PDA (must be Active, oracle validated via has_one)",
+        "* `oracle` - Oracle signer (must match campaign.oracle)",
+        "* `campaign_usdc_account` - Campaign vault (source for payments)",
+        "* `influencer_usdc_account` - Influencer's USDC account (payment destination)",
+        "* `token_program` - SPL Token program",
+        "* `system_program` - System program (for account closure)",
+        "",
+        "# State Transitions",
+        "",
+        "* `Active` → `Completed` (when progress reaches 100%)",
+        "",
+        "# Errors",
+        "",
+        "* `CampaignNotActive` - Campaign is not in Active status",
+        "* `CampaignExpired` - Deadline has passed",
+        "* `UnauthorizedOracle` - Oracle signer doesn't match campaign.oracle",
+        "",
+        "# Payment Logic",
+        "",
+        "Milestones are paid progressively:",
+        "- Old progress: 25% → New progress: 55% = Pay milestones 2, 3, 4 (30%, 40%, 50%)",
+        "- Each milestone = 10% of total budget",
+        "- payment_milestones[i] prevents double-payment",
+        "",
+        "# Auto-Close",
+        "",
+        "When progress reaches 100%, the campaign account is closed and rent",
+        "is refunded to the oracle as compensation."
+      ],
       "discriminator": [
         171,
         66,
@@ -267,6 +574,12 @@
       "accounts": [
         {
           "name": "campaign",
+          "docs": [
+            "Conta da campanha.",
+            "",
+            "Deve ser mutável, possuir o oráculo correto e ser uma PDA derivada de",
+            "`[\"campaign\", campaign.influencer, campaign.brand, campaign.name]`."
+          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -303,6 +616,10 @@
         },
         {
           "name": "oracle",
+          "docs": [
+            "The oracle's signer account."
+          ],
+          "writable": true,
           "signer": true,
           "relations": [
             "campaign"
@@ -310,15 +627,31 @@
         },
         {
           "name": "campaign_usdc_account",
+          "docs": [
+            "The campaign's USDC vault token account (source for payments)."
+          ],
           "writable": true
         },
         {
           "name": "influencer_usdc_account",
+          "docs": [
+            "The influencer's USDC token account (destination for payments)."
+          ],
           "writable": true
         },
         {
           "name": "token_program",
+          "docs": [
+            "The SPL Token program."
+          ],
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "The Solana system program."
+          ],
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
@@ -369,148 +702,270 @@
     },
     {
       "code": 6002,
+      "name": "NicknameTooLong",
+      "msg": "Nickname is too long (max 50 characters)."
+    },
+    {
+      "code": 6003,
       "name": "BrandNameTooLong",
       "msg": "Brand name is too long (max 50 characters)."
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "HashtagTooLong",
       "msg": "Hashtag is too long (max 50 characters)."
     },
     {
-      "code": 6004,
+      "code": 6005,
       "name": "InvalidAmount",
       "msg": "Amount must be greater than 0."
     },
     {
-      "code": 6005,
+      "code": 6006,
       "name": "InvalidDeadline",
       "msg": "Deadline must be in the future."
     },
     {
-      "code": 6006,
+      "code": 6007,
       "name": "NoTargetsSet",
       "msg": "At least one target metric must be set."
     },
     {
-      "code": 6007,
+      "code": 6008,
       "name": "CampaignNotDraft",
       "msg": "Campaign is not in draft status."
     },
     {
-      "code": 6008,
+      "code": 6009,
       "name": "CampaignExpired",
       "msg": "Campaign has expired."
     },
     {
-      "code": 6009,
+      "code": 6010,
       "name": "CampaignNotActive",
       "msg": "Campaign is not active."
     },
     {
-      "code": 6010,
+      "code": 6011,
       "name": "UnauthorizedBrand",
       "msg": "You are not the authorized brand for this campaign."
     },
     {
-      "code": 6011,
+      "code": 6012,
       "name": "CampaignAlreadyCompleted",
       "msg": "Campaign is already completed."
     },
     {
-      "code": 6012,
+      "code": 6013,
       "name": "MathOverflow",
       "msg": "Math overflow occurred."
     },
     {
-      "code": 6013,
+      "code": 6014,
       "name": "InvalidMilestone",
       "msg": "Invalid payment milestone."
     },
     {
-      "code": 6014,
+      "code": 6015,
       "name": "PaymentAlreadyProcessed",
       "msg": "Payment already processed for this milestone."
     },
     {
-      "code": 6015,
+      "code": 6016,
       "name": "InsufficientFunds",
       "msg": "Insufficient funds for payment."
     },
     {
-      "code": 6016,
+      "code": 6017,
       "name": "PaymentExceedsBudget",
       "msg": "Payment amount exceeds campaign budget."
+    },
+    {
+      "code": 6018,
+      "name": "CampaignNotInTerminalState",
+      "msg": "Campaign must be in Completed or Cancelled status."
     }
   ],
   "types": [
     {
       "name": "Campaign",
+      "docs": [
+        "Campaign account storing all campaign state.",
+        "",
+        "# PDA Derivation",
+        "",
+        "Seeds: `[\"campaign\", influencer_pubkey, brand_pubkey, campaign_name]`",
+        "",
+        "# Invariants",
+        "",
+        "The following must always hold:",
+        "- `paid_amount <= amount_usdc` (never overpay)",
+        "- `payment_milestones[i] == true` implies at least `(i+1)*10%` paid",
+        "- `status` transitions are one-way (no reverse)",
+        "- `oracle` never changes after creation",
+        "- At least one target metric > 0",
+        "",
+        "# Space Calculation",
+        "",
+        "Total: 474 bytes",
+        "- Account discriminator: 8 bytes",
+        "- influencer: 32 bytes (Pubkey)",
+        "- brand: 32 bytes (Pubkey)",
+        "- name: 4 + 50 bytes (String with length prefix)",
+        "- nickname: 4 + 50 bytes",
+        "- brand_name: 4 + 50 bytes",
+        "- hashtag: 4 + 50 bytes",
+        "- Metrics (8 fields): 8 * 8 = 64 bytes (u64 each)",
+        "- amount_usdc: 8 bytes (u64)",
+        "- deadline: 8 bytes (i64)",
+        "- status: 1 + 1 = 2 bytes (enum discriminator + variant)",
+        "- paid_amount: 8 bytes (u64)",
+        "- oracle: 32 bytes (Pubkey)",
+        "- created_at: 8 bytes (i64)",
+        "- last_updated: 8 bytes (i64)",
+        "- payment_milestones: 10 bytes (array of 10 bools)"
+      ],
       "type": {
         "kind": "struct",
         "fields": [
           {
             "name": "influencer",
+            "docs": [
+              "Influencer who created the campaign (receives payments)"
+            ],
             "type": "pubkey"
           },
           {
             "name": "brand",
+            "docs": [
+              "Brand funding the campaign (pays upfront)"
+            ],
             "type": "pubkey"
           },
           {
             "name": "name",
+            "docs": [
+              "Unique campaign name (max 50 chars, part of PDA seed)"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "nickname",
+            "docs": [
+              "Influencer's handle/nickname (max 50 chars)"
+            ],
             "type": "string"
           },
           {
             "name": "brand_name",
+            "docs": [
+              "Brand's name (max 50 chars)"
+            ],
             "type": "string"
           },
           {
             "name": "hashtag",
+            "docs": [
+              "Campaign hashtag (max 50 chars, e.g., \"#summer2024\")"
+            ],
             "type": "string"
           },
           {
             "name": "target_likes",
+            "docs": [
+              "Target number of likes to achieve"
+            ],
             "type": "u64"
           },
           {
             "name": "target_comments",
+            "docs": [
+              "Target number of comments to achieve"
+            ],
             "type": "u64"
           },
           {
             "name": "target_views",
+            "docs": [
+              "Target number of views to achieve"
+            ],
             "type": "u64"
           },
           {
             "name": "target_shares",
+            "docs": [
+              "Target number of shares to achieve"
+            ],
             "type": "u64"
           },
           {
             "name": "current_likes",
+            "docs": [
+              "Current number of likes (updated via update_campaign_metrics)"
+            ],
             "type": "u64"
           },
           {
             "name": "current_comments",
+            "docs": [
+              "Current number of comments"
+            ],
             "type": "u64"
           },
           {
             "name": "current_views",
+            "docs": [
+              "Current number of views"
+            ],
             "type": "u64"
           },
           {
             "name": "current_shares",
+            "docs": [
+              "Current number of shares"
+            ],
             "type": "u64"
           },
           {
             "name": "amount_usdc",
+            "docs": [
+              "Total campaign budget in USDC (6 decimals, e.g., 100_000_000 = 100 USDC)"
+            ],
             "type": "u64"
           },
           {
+            "name": "paid_amount",
+            "docs": [
+              "Cumulative amount paid to influencer so far"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "payment_milestones",
+            "docs": [
+              "Milestone payment tracking (prevents double-payment)",
+              "Index i = true means (i+1)*10% milestone has been paid",
+              "[0] = 10%, [1] = 20%, ..., [9] = 100%"
+            ],
+            "type": {
+              "array": [
+                "bool",
+                10
+              ]
+            }
+          },
+          {
             "name": "deadline",
+            "docs": [
+              "Campaign deadline (Unix timestamp, UTC)"
+            ],
             "type": "i64"
           },
           {
             "name": "status",
+            "docs": [
+              "Current campaign status (Draft/Active/Completed/Cancelled)"
+            ],
             "type": {
               "defined": {
                 "name": "CampaignStatus"
@@ -518,35 +973,38 @@
             }
           },
           {
-            "name": "paid_amount",
-            "type": "u64"
-          },
-          {
             "name": "oracle",
+            "docs": [
+              "Authorized oracle pubkey (validates via has_one constraint)",
+              "This is the only account that can call update_campaign_metrics"
+            ],
             "type": "pubkey"
           },
           {
             "name": "created_at",
+            "docs": [
+              "Campaign creation timestamp (Unix timestamp)"
+            ],
             "type": "i64"
           },
           {
             "name": "last_updated",
+            "docs": [
+              "Last update timestamp (updated on any state change)"
+            ],
             "type": "i64"
-          },
-          {
-            "name": "payment_milestones",
-            "type": {
-              "array": [
-                "bool",
-                10
-              ]
-            }
           }
         ]
       }
     },
     {
       "name": "CampaignStatus",
+      "docs": [
+        "Campaign lifecycle status.",
+        "",
+        "Each campaign progresses through these states in a one-way manner",
+        "(no reverse transitions allowed)."
+      ],
       "type": {
         "kind": "enum",
         "variants": [
