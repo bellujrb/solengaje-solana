@@ -14,24 +14,30 @@ import { getSolanaNetworkKey } from "../lib/solana-config";
 export function usePrivyWallet() {
   const { authenticated, user, ready } = usePrivy();
 
-  // ✅ Hooks sempre chamados — nunca condicionais
+  // ✅ Hooks sempre chamados — usar valores padrão se chamados fora do contexto
   let walletsHook;
   let signHook;
   let signTxHook;
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     walletsHook = useSolanaWallets();
   } catch {
     walletsHook = { wallets: [] };
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     signHook = useSignAndSendTransaction();
   } catch {
     signHook = { signAndSendTransaction: null };
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     signTxHook = useSignTransaction();
   } catch {
     signTxHook = { signTransaction: null };
@@ -39,16 +45,16 @@ export function usePrivyWallet() {
 
   // ✅ Agora usamos ready para decidir *como usar* o resultado, não se chamamos o hook
   const solanaWallets = useMemo(() => {
-    return ready ? walletsHook.wallets ?? [] : [];
-  }, [ready, walletsHook.wallets]);
+    return ready ? walletsHook?.wallets ?? [] : [];
+  }, [ready, walletsHook?.wallets]);
 
   const signAndSendTransaction = useMemo(() => {
-    return ready ? signHook.signAndSendTransaction ?? null : null;
-  }, [ready, signHook.signAndSendTransaction]);
+    return ready ? signHook?.signAndSendTransaction ?? null : null;
+  }, [ready, signHook?.signAndSendTransaction]);
 
   const signTransaction = useMemo(() => {
-    return ready ? signTxHook.signTransaction ?? null : null;
-  }, [ready, signTxHook.signTransaction]);
+    return ready ? signTxHook?.signTransaction ?? null : null;
+  }, [ready, signTxHook?.signTransaction]);
 
   const solanaWallet = useMemo(() => solanaWallets[0] ?? null, [solanaWallets]);
   const solanaWalletAddress = solanaWallet?.address ?? null;
@@ -120,9 +126,10 @@ export function usePrivyWallet() {
           await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed");
           return sig;
         }
-      } catch (err: any) {
-        await handleFundsError(err);
-        console.warn("signTransaction fallback:", err);
+      } catch (err) {
+        const error = err as Error;
+        await handleFundsError(error);
+        console.warn("signTransaction fallback:", error);
       }
 
       if (signAndSendTransaction) {
@@ -135,9 +142,10 @@ export function usePrivyWallet() {
           return result?.signature
             ? Buffer.from(result.signature).toString("base64")
             : String(result);
-        } catch (err: any) {
-          await handleFundsError(err);
-          throw err;
+        } catch (err) {
+          const error = err as Error;
+          await handleFundsError(error);
+          throw error;
         }
       }
 

@@ -65,7 +65,7 @@ function getProgram(anchorWallet: unknown): Program {
   const connection = getConnection();
   const provider = new AnchorProvider(connection, anchorWallet as never, {
     commitment: 'confirmed',
-    skipPreflight: false,
+    skipPreflight: true,
   });
 
   // Criar uma cópia profunda do IDL e atualizar o address com o programId correto

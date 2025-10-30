@@ -94,7 +94,7 @@ export function BudgetTimelineScreen({ setActiveTab }: BudgetTimelineScreenProps
   }, [isCreating]);
 
   const handleBack = () => {
-    setActiveTab("success-metrics");
+    setActiveTab("content-requirements");
   };
 
   const handleCreate = async () => {

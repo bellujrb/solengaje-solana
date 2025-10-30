@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { BN, Program } from "@coral-xyz/anchor";
+import { BN, Program, AnchorProvider } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token";
 import { getConnection, PROGRAM_ID, USDC_MINT } from "../lib/anchor";
 import { usePrivyWallet } from "./usePrivyWallet";
@@ -16,12 +16,12 @@ interface ActivateCampaignParams {
 
 function getProgram(anchorWallet: unknown): Program {
   const connection = getConnection();
-  const provider = new (require("@coral-xyz/anchor").AnchorProvider)(
+  const provider = new AnchorProvider(
     connection,
     anchorWallet as never,
     {
       commitment: 'confirmed',
-      skipPreflight: false,
+      skipPreflight: true,
     }
   );
 

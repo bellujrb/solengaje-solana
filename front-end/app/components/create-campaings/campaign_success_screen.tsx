@@ -38,8 +38,8 @@ export function CampaignSuccessScreen({ setActiveTab }: CampaignSuccessScreenPro
   
   // Generate campaign link
   const campaignLink = transactionHash 
-    ? `http://solengaje.vercel.app/campaign-pay/${transactionHash.slice(0, 10)}`
-    : `http://solengaje.vercel.app/campaign-pay/new`;
+    ? `http://solengage.vercel.app/campaign-pay/${transactionHash.slice(0, 10)}`
+    : `http://solengagnpe.vercel.app/campaign-pay/new`;
 
   const handleCopyLink = async () => {
     try {

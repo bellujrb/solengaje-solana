@@ -6,6 +6,7 @@ interface CampaignContextType {
   campaignData: CampaignData;
   updateCampaignBasics: (data: { campaignName: string; brandName: string; description: string; instagramUsername: string }) => void;
   updateSuccessMetrics: (data: { targetLikes: string; targetComments: string; targetViews: string; targetShares: string }) => void;
+  updateContentRequirements: (data: { selectedContentTypes: string[]; selectedPlatforms: string[] }) => void;
   updateBudgetTimeline: (data: { totalBudget: string; durationDays: string }) => void;
   resetCampaignData: () => void;
   getCampaignData: () => CampaignData;
@@ -21,6 +22,8 @@ const defaultCampaignData: CampaignData = {
   targetComments: '',
   targetViews: '',
   targetShares: '',
+  selectedContentTypes: [],
+  selectedPlatforms: [],
   totalBudget: '',
   durationDays: '',
 };
@@ -39,6 +42,13 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSuccessMetrics = (data: { targetLikes: string; targetComments: string; targetViews: string; targetShares: string }) => {
+    setCampaignData(prev => ({
+      ...prev,
+      ...data
+    }));
+  };
+
+  const updateContentRequirements = (data: { selectedContentTypes: string[]; selectedPlatforms: string[] }) => {
     setCampaignData(prev => ({
       ...prev,
       ...data
@@ -105,6 +115,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     campaignData,
     updateCampaignBasics,
     updateSuccessMetrics,
+    updateContentRequirements,
     updateBudgetTimeline,
     resetCampaignData,
     getCampaignData,

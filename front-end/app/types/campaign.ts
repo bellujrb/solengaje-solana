@@ -12,6 +12,10 @@ export interface CampaignData {
   targetViews: string;
   targetShares: string;
   
+  // Content Requirements (off-chain)
+  selectedContentTypes: string[];
+  selectedPlatforms: string[];
+  
   // Budget & Timeline
   totalBudget: string;
   durationDays: string;

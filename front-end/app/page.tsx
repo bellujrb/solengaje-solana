@@ -13,6 +13,7 @@ import { CampaignDetailsScreen } from "./components/campaigns/campaign_details_s
 import { CampaignBasicsScreen } from "./components/create-campaings/campaign_basics_screen";
 import { SuccessMetricsScreen } from "./components/create-campaings/success_metrics_screen";
 import { BudgetTimelineScreen } from "./components/create-campaings/budget_timeline_screen";
+import { ContentRequirementsScreen } from "./components/create-campaings/content_requirements_screen";
 import { CampaignSuccessScreen } from "./components/create-campaings/campaign_success_screen";
 import { AnalyticsScreen } from "./components/analytics/analytics_screen";
 import { SettingsScreen } from "./components/settings/settings_screen";
@@ -39,7 +40,7 @@ export default function App() {
       )}
 
       <div className="w-full max-w-md mx-auto px-4 py-3">
-        <main className={`flex-1 ${(activeTab === "dashboard" || activeTab === "campaigns" || activeTab === "campaign-details" || activeTab === "analytics" || activeTab === "settings" || activeTab === "campaign-basics" || activeTab === "success-metrics" || activeTab === "budget-timeline" || activeTab === "campaign-success") ? "pb-20" : ""}`}>
+        <main className={`flex-1 ${(activeTab === "dashboard" || activeTab === "campaigns" || activeTab === "campaign-details" || activeTab === "analytics" || activeTab === "settings" || activeTab === "campaign-basics" || activeTab === "success-metrics" || activeTab === "content-requirements" || activeTab === "budget-timeline" || activeTab === "campaign-success") ? "pb-20" : ""}`}>
           {activeTab === "home" && <OnboardingPage setActiveTab={setActiveTab} />}
           {activeTab === "features" && <Features setActiveTab={setActiveTab} />}
           {activeTab === "dashboard" && <DashboardScreen setActiveTab={setActiveTab} />}
@@ -47,6 +48,7 @@ export default function App() {
           {activeTab === "campaign-details" && <CampaignDetailsScreen setActiveTab={setActiveTab} campaignId={selectedCampaignId} />}
           {activeTab === "campaign-basics" && <CampaignBasicsScreen setActiveTab={setActiveTab} />}
           {activeTab === "success-metrics" && <SuccessMetricsScreen setActiveTab={setActiveTab} />}
+          {activeTab === "content-requirements" && <ContentRequirementsScreen setActiveTab={setActiveTab} />}
           {activeTab === "budget-timeline" && <BudgetTimelineScreen setActiveTab={setActiveTab} />}
           {activeTab === "campaign-success" && <CampaignSuccessScreen setActiveTab={setActiveTab} />}
           {activeTab === "analytics" && <AnalyticsScreen />}
@@ -67,7 +69,7 @@ export default function App() {
       </div>
       
       {/* Bottom Navigation - Only show from dashboard onwards */}
-      {(activeTab === "dashboard" || activeTab === "campaigns" || activeTab === "campaign-details" || activeTab === "analytics" || activeTab === "settings" || activeTab === "campaign-basics" || activeTab === "success-metrics" || activeTab === "budget-timeline" || activeTab === "campaign-success") && (
+      {(activeTab === "dashboard" || activeTab === "campaigns" || activeTab === "campaign-details" || activeTab === "analytics" || activeTab === "settings" || activeTab === "campaign-basics" || activeTab === "success-metrics" || activeTab === "content-requirements" || activeTab === "budget-timeline" || activeTab === "campaign-success") && (
         <BottomNavigation 
           activeTab={activeTab === "campaign-details" ? "campaigns" : activeTab}
           setActiveTab={setActiveTab} 

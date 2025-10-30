@@ -5,8 +5,6 @@ import { useAuth } from "../../hooks/useAuth";
 import { ConnectButton } from '../ConnectButton';
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { useActivateCampaign } from "../../hooks/useActivateCampaign";
-import { PublicKey } from "@solana/web3.js";
-import { BN } from "@coral-xyz/anchor";
 import { useRouter } from "next/navigation";
 
 type CampaignDetailsScreenProps = {
@@ -17,7 +15,7 @@ type CampaignDetailsScreenProps = {
 export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDetailsScreenProps) {
   const { isConnected } = useAuth();
   const { campaigns } = useCampaigns();
-  const { activateCampaign, loading: activating } = useActivateCampaign();
+  const { loading: activating } = useActivateCampaign();
   const router = useRouter();
   
   // Encontrar a campanha pelo ID
@@ -39,13 +37,6 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
       default:
         return "bg-gray-50 text-gray-600 border-gray-300";
     }
-  };
-
-  const handleActivateCampaign = async () => {
-    if (!campaign) return;
-
-    // Navigate to payment page
-    router.push(`/campaign-pay/${campaign.id}`);
   };
 
   const handleCopyActivationLink = async () => {
@@ -164,13 +155,6 @@ export function CampaignDetailsScreen({ setActiveTab, campaignId }: CampaignDeta
               onClick={handleCopyActivationLink}
             >
               Copiar Link de Ativação
-            </Button>
-            <Button
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium"
-              onClick={handleActivateCampaign}
-              disabled={activating}
-            >
-              {activating ? 'Ativando...' : 'Ativar Campanha'}
             </Button>
           </div>
         ) : campaign.status === 'ACTIVE' ? (

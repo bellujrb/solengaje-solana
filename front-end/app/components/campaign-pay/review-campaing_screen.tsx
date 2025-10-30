@@ -99,11 +99,15 @@ export function ReviewCampaign({ campaignId }: ReviewCampaignProps) {
       <Card className="bg-white p-6">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">{campaign.instagramUsername.charAt(0).toUpperCase()}</span>
+            {campaign.instagramUsername ? (
+              <span className="text-white font-bold">{campaign.instagramUsername.charAt(0).toUpperCase()}</span>
+            ) : (
+              <Icon name="camera" className="text-white" size="md" />
+            )}
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-black">{campaign.instagramUsername}</h3>
-            <p className="text-gray-600 text-sm">{campaign.description}</p>
+            <h3 className="font-bold text-black">{campaign.instagramUsername || campaign.title}</h3>
+            <p className="text-gray-600 text-sm">{campaign.description || 'No description'}</p>
             <div className="flex items-center mt-1">
               <Icon name="check" className="text-green-500 mr-1" size="sm" />
               <span className="text-green-600 text-xs">Verified by Solengaje</span>

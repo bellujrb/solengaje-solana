@@ -17,13 +17,13 @@ export const ConnectButton = () => {
   }
 
   return (
-    <UserPill 
-      action={{ 
-        type: 'login', 
-        options: { 
+    <UserPill
+      action={{
+        type: 'login',
+        options: {
           loginMethods: ['email', 'wallet'],
           walletChainType: 'solana-only',
-        } 
+        },
       }}
     />
   );

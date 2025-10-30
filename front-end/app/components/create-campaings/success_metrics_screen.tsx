@@ -34,7 +34,7 @@ export function SuccessMetricsScreen({ setActiveTab }: SuccessMetricsScreenProps
       targetViews,
       targetShares
     });
-    setActiveTab("budget-timeline");
+    setActiveTab("content-requirements");
   };
 
   const isFormValid = targetLikes.trim().length > 0 && targetComments.trim().length > 0 && targetViews.trim().length > 0 && targetShares.trim().length > 0;
