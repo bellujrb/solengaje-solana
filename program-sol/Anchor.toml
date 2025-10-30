@@ -5,9 +5,6 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-solengage = "2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5"
-
 [programs.devnet]
 solengage = "2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5"
 

@@ -1,40 +1,40 @@
-//! # Create Campaign Instruction
+//! # Criar Campanha
 //! 
-//! This module defines the instruction for creating a new influencer marketing campaign.
+//! Este módulo define a instrução para criar uma nova campanha de marketing de influenciadores.
 
 use anchor_lang::prelude::*;
 use crate::errors::ErrorCode;
 use crate::state::{Campaign, CampaignStatus};
 
-/// Creates a new influencer marketing campaign in Draft status.
+/// Cria uma nova campanha em status `Draft`.
 ///
-/// This function initializes a new `Campaign` account with the provided details.
-/// It performs several validations to ensure the integrity of the campaign data.
+/// Inicializa uma conta `Campaign` com os detalhes fornecidos.
+/// Realiza validações para garantir a integridade dos dados da campanha.
 ///
-/// # Arguments
+/// # Argumentos
 ///
-/// * `ctx` - The context for the `CreateCampaign` instruction.
-/// * `name` - The unique name of the campaign (max 50 characters).
-/// * `nickname` - The influencer's handle or nickname (max 50 characters).
-/// * `brand_name` - The name of the brand (max 50 characters).
-/// * `hashtag` - The campaign's hashtag (max 50 characters).
-/// * `target_likes` - The target number of likes for the campaign.
-/// * `target_comments` - The target number of comments for the campaign.
-/// * `target_views` - The target number of views for the campaign.
-/// * `target_shares` - The target number of shares for the campaign.
-/// * `amount_usdc` - The total campaign budget in USDC (6 decimals).
-/// * `deadline` - The Unix timestamp when the campaign expires.
+/// * `ctx` - Contexto da instrução `CreateCampaign`.
+/// * `name` - Nome único da campanha (máx. 50 caracteres).
+/// * `nickname` - Apelido/handle do influenciador (máx. 50 caracteres).
+/// * `brand_name` - Nome da marca (máx. 50 caracteres).
+/// * `hashtag` - Hashtag da campanha (máx. 50 caracteres).
+/// * `target_likes` - Meta de curtidas.
+/// * `target_comments` - Meta de comentários.
+/// * `target_views` - Meta de visualizações.
+/// * `target_shares` - Meta de compartilhamentos.
+/// * `amount_usdc` - Orçamento total da campanha em USDC (6 decimais).
+/// * `deadline` - Timestamp Unix de expiração da campanha.
 ///
-/// # Errors
+/// # Erros
 ///
-/// This function will return an `ErrorCode` if any of the following conditions are met:
-/// * `NameTooLong` - If the campaign name exceeds 50 characters.
-/// * `NicknameTooLong` - If the influencer nickname exceeds 50 characters.
-/// * `BrandNameTooLong` - If the brand name exceeds 50 characters.
-/// * `HashtagTooLong` - If the hashtag exceeds 50 characters.
-/// * `InvalidAmount` - If `amount_usdc` is zero.
-/// * `InvalidDeadline` - If the `deadline` is in the past.
-/// * `NoTargetsSet` - If all target metrics (likes, comments, views, shares) are zero.
+/// Retorna `ErrorCode` se ocorrer:
+/// * `NameTooLong` - Nome da campanha excede 50 caracteres.
+/// * `NicknameTooLong` - Apelido do influenciador excede 50 caracteres.
+/// * `BrandNameTooLong` - Nome da marca excede 50 caracteres.
+/// * `HashtagTooLong` - Hashtag excede 50 caracteres.
+/// * `InvalidAmount` - `amount_usdc` igual a zero.
+/// * `InvalidDeadline` - `deadline` no passado.
+/// * `NoTargetsSet` - Todas as metas (likes, comments, views, shares) iguais a zero.
 pub fn create_campaign(
     ctx: Context<CreateCampaign>,
     name: String,
@@ -48,7 +48,7 @@ pub fn create_campaign(
     amount_usdc: u64,
     deadline: i64,
 ) -> Result<()> {
-    // Input validations
+    // Validações de entrada
     require!(name.len() <= 50, ErrorCode::NameTooLong);
     require!(nickname.len() <= 50, ErrorCode::NicknameTooLong);
     require!(brand_name.len() <= 50, ErrorCode::BrandNameTooLong);
@@ -87,13 +87,13 @@ pub fn create_campaign(
     Ok(())
 }
 
-/// Accounts for the `create_campaign` instruction.
+/// Contas para a instrução `create_campaign`.
 #[derive(Accounts)]
 #[instruction(name: String)]
 pub struct CreateCampaign<'info> {
-    /// The campaign account to be initialized.
+    /// Conta da campanha a ser inicializada.
     ///
-    /// This PDA is derived from `["campaign", influencer, brand, name]`.
+    /// PDA derivada de `["campaign", influencer, brand, name]`.
     #[account(
         init,
         payer = influencer,
@@ -102,14 +102,14 @@ pub struct CreateCampaign<'info> {
         bump
     )]
     pub campaign: Account<'info, Campaign>,
-    /// The influencer's account, who is also the payer for the campaign initialization.
+    /// Conta do influenciador, também pagador da inicialização.
     #[account(mut)]
     pub influencer: Signer<'info>,
-    /// The brand's system account.
+    /// Conta da marca (SystemAccount).
     pub brand: SystemAccount<'info>,
-    /// The oracle's account info.
-    /// CHECK: The oracle account is verified through signature validation in the instruction handler.
+    /// Conta do oráculo.
+    /// CHECK: Verificado via validação de assinatura no handler da instrução.
     pub oracle: AccountInfo<'info>,
-    /// The Solana system program.
+    /// Programa do sistema Solana.
     pub system_program: Program<'info, System>,
 }

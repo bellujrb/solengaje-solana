@@ -1,35 +1,35 @@
-//! # Brand Pay Campaign Instruction
+//! # Pagamento da Marca (Ativar Campanha)
 //! 
-//! This module defines the instruction for a brand to fund an influencer marketing campaign.
+//! Este módulo define a instrução para a marca financiar uma campanha de marketing de influenciadores.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use crate::errors::ErrorCode;
 use crate::state::{Campaign, CampaignStatus};
 
-/// Activates a campaign by transferring USDC from the brand to the campaign vault.
+/// Ativa a campanha transferindo USDC da marca para o cofre da campanha.
 ///
-/// This function transitions a campaign from `Draft` to `Active` status.
-/// The full campaign amount must be transferred at once (no partial funding).
-/// It performs validations to ensure the campaign is in the correct state and not expired.
+/// Esta função muda o status de `Draft` para `Active`.
+/// O valor total da campanha deve ser transferido de uma vez (sem financiamento parcial).
+/// Realiza validações para garantir que a campanha está no estado correto e não expirou.
 ///
-/// # Arguments
+/// # Argumentos
 ///
-/// * `ctx` - The context for the `BrandPayCampaign` instruction.
+/// * `ctx` - Contexto da instrução `BrandPayCampaign`.
 ///
-/// # Errors
+/// # Erros
 ///
-/// This function will return an `ErrorCode` if any of the following conditions are met:
-/// * `CampaignNotDraft` - If the campaign is not in `Draft` status.
-/// * `CampaignExpired` - If the campaign deadline has passed.
+/// Retorna `ErrorCode` se ocorrer:
+/// * `CampaignNotDraft` - Campanha não está em `Draft`.
+/// * `CampaignExpired` - Prazo da campanha expirou.
 pub fn brand_pay_campaign(ctx: Context<BrandPayCampaign>) -> Result<()> {
     let campaign = &mut ctx.accounts.campaign;
 
-    // Security validations
+    // Validações de segurança
     require_eq!(campaign.status, CampaignStatus::Draft, ErrorCode::CampaignNotDraft);
     require!(Clock::get()?.unix_timestamp < campaign.deadline, ErrorCode::CampaignExpired);
 
-    // CPI to transfer USDC from brand to campaign vault
+    // CPI para transferir USDC da marca para o cofre da campanha
     let cpi_accounts = Transfer {
         from: ctx.accounts.brand_usdc_account.to_account_info(),
         to: ctx.accounts.campaign_usdc_account.to_account_info(),
@@ -39,19 +39,19 @@ pub fn brand_pay_campaign(ctx: Context<BrandPayCampaign>) -> Result<()> {
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     token::transfer(cpi_ctx, campaign.amount_usdc)?;
 
-    // Update campaign status and last updated timestamp
+    // Atualiza status da campanha e timestamp de última atualização
     campaign.status = CampaignStatus::Active;
     campaign.last_updated = Clock::get()?.unix_timestamp;
 
     Ok(())
 }
 
-/// Accounts for the `brand_pay_campaign` instruction.
+/// Contas para a instrução `brand_pay_campaign`.
 #[derive(Accounts)]
 pub struct BrandPayCampaign<'info> {
-    /// The campaign account.
+    /// Conta da campanha.
     ///
-    /// Must be mutable, have the correct brand, and be a PDA derived from
+    /// Deve ser mutável, possuir a marca correta e ser uma PDA derivada de
     /// `["campaign", campaign.influencer, campaign.brand, campaign.name]`.
     #[account(
         mut,
@@ -60,15 +60,15 @@ pub struct BrandPayCampaign<'info> {
         bump
     )]
     pub campaign: Account<'info, Campaign>,
-    /// The brand's signer account.
+    /// Conta da marca (assinante).
     #[account(mut)]
     pub brand: Signer<'info>,
-    /// The brand's USDC token account (source for the transfer).
+    /// Conta de token USDC da marca (fonte da transferência).
     #[account(mut)]
     pub brand_usdc_account: Account<'info, TokenAccount>,
-    /// The campaign's USDC vault token account (destination for the transfer).
+    /// Conta de token USDC do cofre da campanha (destino da transferência).
     #[account(mut)]
     pub campaign_usdc_account: Account<'info, TokenAccount>,
-    /// The SPL Token program.
+    /// Programa SPL Token.
     pub token_program: Program<'info, Token>,
 }

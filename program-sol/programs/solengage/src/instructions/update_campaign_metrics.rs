@@ -1,32 +1,32 @@
-//! # Update Campaign Metrics Instruction
+//! # Atualizar Métricas da Campanha
 //! 
-//! This module defines the instruction for updating campaign metrics and triggering milestone payments.
+//! Este módulo define a instrução para atualizar métricas da campanha e acionar pagamentos por marco.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use crate::errors::ErrorCode;
 use crate::state::{Campaign, CampaignStatus};
 
-/// Updates campaign metrics and triggers automatic milestone payments.
+/// Atualiza métricas da campanha e aciona pagamentos automáticos por marcos.
 ///
-/// This function is callable only by the authorized oracle. It calculates the progress
-/// based on the updated metrics and pays out any newly achieved milestones (10%, 20%, ..., 100%).
-/// The campaign is automatically closed when 100% progress is reached.
+/// Apenas o oráculo autorizado pode chamar. Calcula o progresso com base
+/// nas métricas atualizadas e paga os marcos recém-alcançados (10%, 20%, ..., 100%).
+/// A campanha é automaticamente finalizada quando o progresso atinge 100%.
 ///
-/// # Arguments
+/// # Argumentos
 ///
-/// * `ctx` - The context for the `UpdateCampaignMetrics` instruction.
-/// * `likes` - The current number of likes.
-/// * `comments` - The current number of comments.
-/// * `views` - The current number of views.
-/// * `shares` - The current number of shares.
+/// * `ctx` - Contexto da instrução `UpdateCampaignMetrics`.
+/// * `likes` - Número atual de curtidas.
+/// * `comments` - Número atual de comentários.
+/// * `views` - Número atual de visualizações.
+/// * `shares` - Número atual de compartilhamentos.
 ///
-/// # Errors
+/// # Erros
 ///
-/// This function will return an `ErrorCode` if any of the following conditions are met:
-/// * `CampaignNotActive` - If the campaign is not in `Active` status.
-/// * `CampaignExpired` - If the campaign deadline has passed.
-/// * `MathOverflow` - If an arithmetic operation results in an overflow during payment calculation.
+/// Retorna `ErrorCode` se ocorrer:
+/// * `CampaignNotActive` - Campanha não está em `Active`.
+/// * `CampaignExpired` - Prazo da campanha expirou.
+/// * `MathOverflow` - Overflow aritmético durante cálculos de pagamento.
 pub fn update_campaign_metrics(
     ctx: Context<UpdateCampaignMetrics>,
     likes: u64,
@@ -34,13 +34,13 @@ pub fn update_campaign_metrics(
     views: u64,
     shares: u64,
 ) -> Result<()> {
-    // Validate campaign status and deadline
+    // Valida status da campanha e deadline
     require_eq!(ctx.accounts.campaign.status, CampaignStatus::Active, ErrorCode::CampaignNotActive);
     require!(Clock::get()?.unix_timestamp < ctx.accounts.campaign.deadline, ErrorCode::CampaignExpired);
 
     let old_progress = ctx.accounts.campaign.get_progress_percentage();
 
-    // Update current metrics and last updated timestamp
+    // Atualiza métricas correntes e timestamp de última atualização
     ctx.accounts.campaign.current_likes = likes;
     ctx.accounts.campaign.current_comments = comments;
     ctx.accounts.campaign.current_views = views;
@@ -52,7 +52,7 @@ pub fn update_campaign_metrics(
     let old_milestones_achieved = (old_progress / 10) as usize;
     let new_milestones_achieved = (new_progress / 10) as usize;
 
-    // Iterate through newly achieved milestones and process payments
+    // Itera sobre marcos recém-alcançados e processa pagamentos
     for milestone_index in old_milestones_achieved..new_milestones_achieved {
         let amount_to_transfer = ctx.accounts.campaign.calculate_safe_payment(milestone_index)?;
 
@@ -68,7 +68,7 @@ pub fn update_campaign_metrics(
                 ];
                 let signer = &[&seeds[..]];
 
-                // CPI to transfer USDC from campaign vault to influencer
+                // CPI para transferir USDC do cofre da campanha ao influenciador
                 let cpi_accounts = Transfer {
                     from: ctx.accounts.campaign_usdc_account.to_account_info(),
                     to: ctx.accounts.influencer_usdc_account.to_account_info(),
@@ -83,20 +83,20 @@ pub fn update_campaign_metrics(
                         ctx.accounts.campaign.payment_milestones[milestone_index] = true;
                     },
                     Err(e) => {
-                        msg!("Payment failed for milestone {}: {:?}", milestone_index, e);
+                        msg!("Falha no pagamento do marco {}: {:?}", milestone_index, e);
                     }
                 }
             } else {
-                msg!("Payment validation failed for milestone {}", milestone_index);
+                msg!("Validação de pagamento falhou para o marco {}", milestone_index);
             }
         }
     }
 
-    // If 100% progress is reached, complete the campaign and refund rent
+    // Se progresso atingir 100%, completa a campanha e reembolsa rent
     if new_progress >= 100 {
         ctx.accounts.campaign.status = CampaignStatus::Completed;
 
-        // Close the campaign account and refund rent to oracle
+        // Fecha a conta da campanha e reembolsa rent ao oráculo
         let campaign_lamports = ctx.accounts.campaign.to_account_info().lamports();
 
         **ctx.accounts.campaign.to_account_info().try_borrow_mut_lamports()? = 0;
@@ -112,12 +112,12 @@ pub fn update_campaign_metrics(
     Ok(())
 }
 
-/// Accounts for the `update_campaign_metrics` instruction.
+/// Contas para a instrução `update_campaign_metrics`.
 #[derive(Accounts)]
 pub struct UpdateCampaignMetrics<'info> {
-    /// The campaign account.
+    /// Conta da campanha.
     ///
-    /// Must be mutable, have the correct oracle, and be a PDA derived from
+    /// Deve ser mutável, possuir o oráculo correto e ser uma PDA derivada de
     /// `["campaign", campaign.influencer, campaign.brand, campaign.name]`.
     #[account(
         mut,
