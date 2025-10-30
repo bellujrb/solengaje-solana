@@ -64,7 +64,12 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
   let campaignBump: number;
 
   before(async () => {
+    console.log("\n========================================");
+    console.log("🔧 SETUP: Inicializando ambiente de teste");
+    console.log("========================================\n");
+
     // Airdrop SOL to all participants
+    console.log("💰 Solicitando airdrops de SOL...");
     await provider.connection.requestAirdrop(
       influencer.publicKey,
       10 * anchor.web3.LAMPORTS_PER_SOL
@@ -77,8 +82,10 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       oracle.publicKey,
       10 * anchor.web3.LAMPORTS_PER_SOL
     );
+    console.log("✅ Airdrops solicitados para todos os participantes");
 
     // Create USDC Mint
+    console.log("\n🪙 Criando USDC mint (6 decimals)...");
     usdcMint = await createMint(
       provider.connection,
       provider.wallet.payer, // Payer for the mint creation
@@ -86,8 +93,10 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       provider.wallet.publicKey, // Freeze authority
       6 // Decimals
     );
+    console.log("✅ USDC mint criado:", usdcMint.toBase58());
 
     // Get Associated Token Addresses
+    console.log("\n🔍 Calculando Associated Token Addresses...");
     brandUsdcAccount = await getAssociatedTokenAddress(
       usdcMint,
       brand.publicKey
@@ -96,14 +105,17 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       usdcMint,
       influencer.publicKey
     );
+    console.log("✅ ATAs calculados");
 
     // Create Brand's USDC Account
+    console.log("\n💼 Criando token accounts...");
     await createAccount(
       provider.connection,
       brand, // Payer for the account creation
       usdcMint,
       brand.publicKey
     );
+    console.log("✅ Brand USDC account criado");
 
     // Create Influencer's USDC Account
     await createAccount(
@@ -112,18 +124,23 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       usdcMint,
       influencer.publicKey
     );
+    console.log("✅ Influencer USDC account criado");
 
     // Mint USDC to Brand's account
+    console.log("\n💵 Mintando USDC para brand...");
+    const mintAmount = amountUsdc.mul(new anchor.BN(2)).toNumber();
     await mintTo(
       provider.connection,
       provider.wallet.payer, // Payer for the mintTo transaction
       usdcMint,
       brandUsdcAccount,
       provider.wallet.payer, // Mint authority
-      amountUsdc.mul(new anchor.BN(2)).toNumber() // Mint double the campaign amount
+      mintAmount // Mint double the campaign amount
     );
+    console.log("✅ USDC mintado:", mintAmount / 1_000_000, "USDC");
 
     // Derive PDA for the campaign account
+    console.log("\n🔍 Calculando Campaign PDA...");
     [campaignPda, campaignBump] = anchor.web3.PublicKey.findProgramAddressSync(
       [
         Buffer.from("campaign"),
@@ -133,8 +150,10 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       ],
       program.programId
     );
+    console.log("✅ Campaign PDA:", campaignPda.toBase58());
 
     // Create Campaign's USDC Account (vault) - using getOrCreateAssociatedTokenAccount for PDA
+    console.log("\n💼 Criando Campaign USDC vault...");
     const campaignUsdcAccountInfo = await getOrCreateAssociatedTokenAccount(
       provider.connection,
       brand,
@@ -143,14 +162,21 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       true // allowOwnerOffCurve - PDA can be owner
     );
     campaignUsdcAccount = campaignUsdcAccountInfo.address;
+    console.log("✅ Campaign USDC vault criado:", campaignUsdcAccount.toBase58());
+    console.log("\n✅ Setup completo!\n");
   });
 
   it("should create, activate, complete, and auto-close a campaign, refunding rent to oracle", async () => {
+    console.log("\n========================================");
+    console.log("🧪 TESTE: Fechamento Automático ao Atingir 100%");
+    console.log("========================================\n");
+
     // --- 1. Create Campaign ---
-    console.log("1. Creating campaign...");
+    console.log("📋 ETAPA 1: Criando campanha...");
     const initialOracleSolBalance = await provider.connection.getBalance(
       oracle.publicKey
     );
+    console.log("   - Oracle SOL balance inicial:", initialOracleSolBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
 
     await program.methods
       .createCampaign(
@@ -177,13 +203,10 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
 
     let campaignAccount = await program.account.campaign.fetch(campaignPda);
     assert.deepEqual(campaignAccount.status, { draft: {} });
-    console.log(
-      "Campaign created with status:",
-      Object.keys(campaignAccount.status)[0]
-    );
+    console.log("✅ Campanha criada com status:", Object.keys(campaignAccount.status)[0]);
 
     // --- 2. Brand Pays Campaign ---
-    console.log("2. Brand paying campaign...");
+    console.log("\n💰 ETAPA 2: Brand ativando campanha...");
     const initialBrandUsdcBalance = (
       await getAccount(provider.connection, brandUsdcAccount)
     ).amount;
@@ -215,15 +238,15 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       ).amount.toString(),
       (initialBrandUsdcBalance - BigInt(amountUsdc.toString())).toString()
     );
+    console.log("✅ Campanha ativada com sucesso!");
     console.log(
-      "Campaign paid and active. Campaign USDC balance:",
-      (
-        await getAccount(provider.connection, campaignUsdcAccount)
-      ).amount.toString()
+      "   - Campaign USDC vault balance:",
+      Number((await getAccount(provider.connection, campaignUsdcAccount)).amount) / 1_000_000,
+      "USDC"
     );
 
     // --- 3. Oracle Updates Metrics to 100% and Triggers Closure ---
-    console.log("3. Oracle updating metrics to 100% completion...");
+    console.log("\n📊 ETAPA 3: Oracle atualizando métricas para 100%...");
     const initialInfluencerUsdcBalance = (
       await getAccount(provider.connection, influencerUsdcAccount)
     ).amount;
@@ -236,10 +259,11 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       ? campaignAccountInfo.lamports
       : 0;
     console.log(
-      "Rent exempt amount for campaign account:",
+      "   - Rent da campaign account:",
       rentExemptAmount / anchor.web3.LAMPORTS_PER_SOL,
       "SOL"
     );
+    console.log("   - Atualizando para target likes:", targetLikes.toString(), "(100%)");
 
     await program.methods
       .updateCampaignMetrics(
@@ -259,11 +283,13 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       .signers([oracle])
       .rpc();
 
-    console.log("Metrics updated. Checking for campaign closure...");
+    console.log("✅ Métricas atualizadas para 100%!");
 
     // --- Assertions for Closure and Refunds ---
+    console.log("\n🔍 VERIFICAÇÕES: Validando fechamento automático...\n");
 
     // 1. Campaign account should no longer exist
+    console.log("   ✓ Verificando fechamento da campaign account...");
     try {
       await program.account.campaign.fetch(campaignPda);
       assert.fail("Campaign account should have been closed.");
@@ -273,10 +299,11 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
         "Account does not exist",
         "Campaign account was not closed correctly."
       );
-      console.log("Campaign account successfully closed.");
+      console.log("     - Campaign account fechada com sucesso ✓");
     }
 
     // 2. Oracle's SOL balance should have increased by the rent amount
+    console.log("\n   ✓ Verificando refund de rent para oracle...");
     const finalOracleSolBalance = await provider.connection.getBalance(
       oracle.publicKey
     );
@@ -287,20 +314,13 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       initialOracleSolBalance + expectedMinOracleSolIncrease,
       "Oracle did not receive the rent refund."
     );
-    console.log(
-      "Oracle final SOL balance:",
-      finalOracleSolBalance / anchor.web3.LAMPORTS_PER_SOL
-    );
-    console.log(
-      "Oracle initial SOL balance:",
-      initialOracleSolBalance / anchor.web3.LAMPORTS_PER_SOL
-    );
-    console.log(
-      "Expected min increase:",
-      expectedMinOracleSolIncrease / anchor.web3.LAMPORTS_PER_SOL
-    );
+    console.log("     - Oracle SOL balance inicial:", initialOracleSolBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+    console.log("     - Oracle SOL balance final:", finalOracleSolBalance / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+    console.log("     - Aumento mínimo esperado:", expectedMinOracleSolIncrease / anchor.web3.LAMPORTS_PER_SOL, "SOL");
+    console.log("     - Oracle recebeu rent refund ✓");
 
     // 3. Influencer's USDC balance should have increased by the full amount
+    console.log("\n   ✓ Verificando pagamento completo ao influencer...");
     const finalInfluencerUsdcBalance = (
       await getAccount(provider.connection, influencerUsdcAccount)
     ).amount;
@@ -309,12 +329,12 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
       (initialInfluencerUsdcBalance + BigInt(amountUsdc.toString())).toString(),
       "Influencer did not receive full USDC payment."
     );
-    console.log(
-      "Influencer final USDC balance:",
-      finalInfluencerUsdcBalance.toString()
-    );
+    console.log("     - Influencer recebeu:", Number(finalInfluencerUsdcBalance) / 1_000_000, "USDC");
+    console.log("     - Valor esperado:", Number(amountUsdc) / 1_000_000, "USDC");
+    console.log("     - Influencer recebeu pagamento completo ✓");
 
     // 4. Campaign USDC vault should be empty or closed (it's an ATA, so it might just be empty)
+    console.log("\n   ✓ Verificando campaign vault...");
     const campaignUsdcAccountInfo = await provider.connection.getAccountInfo(
       campaignUsdcAccount
     );
@@ -327,11 +347,11 @@ describe("solengage - Auto Close Campaign on 100% Completion", () => {
         "0",
         "Campaign USDC vault should be empty."
       );
-      console.log("Campaign USDC vault is empty.");
+      console.log("     - Campaign USDC vault está vazio ✓");
     } else {
-      console.log(
-        "Campaign USDC vault was also closed (expected for ATAs when empty)."
-      );
+      console.log("     - Campaign USDC vault foi fechado (esperado para ATAs vazios) ✓");
     }
+
+    console.log("\n✅ Teste de Fechamento Automático concluído com sucesso!\n");
   });
 });

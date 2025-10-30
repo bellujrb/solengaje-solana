@@ -75,7 +75,12 @@ describe("Solengage - BDD Tests", () => {
 
   beforeEach(async () => {
     try {
+      console.log("\n========================================");
+      console.log("🔧 SETUP: Inicializando ambiente de teste");
+      console.log("========================================\n");
+
       // Generate fresh keypairs for each test
+      console.log("📝 Gerando keypairs...");
       influencer = Keypair.generate();
       brand = Keypair.generate();
       oracle = Keypair.generate();
@@ -85,28 +90,28 @@ describe("Solengage - BDD Tests", () => {
         throw new Error("Failed to generate keypairs");
       }
 
-      console.log("Generated keypairs successfully");
-      console.log("Influencer:", influencer.publicKey.toString());
-      console.log("Brand:", brand.publicKey.toString());
-      console.log("Oracle:", oracle.publicKey.toString());
+      console.log("✅ Keypairs gerados com sucesso:");
+      console.log("   - Influencer:", influencer.publicKey.toString());
+      console.log("   - Brand:", brand.publicKey.toString());
+      console.log("   - Oracle:", oracle.publicKey.toString());
 
       // Airdrop SOL to accounts
-      console.log("Requesting airdrops...");
+      console.log("\n💰 Solicitando airdrops de SOL...");
       const influencerAirdrop = await provider.connection.requestAirdrop(
-        influencer.publicKey, 
+        influencer.publicKey,
         2 * LAMPORTS_PER_SOL
       );
       const brandAirdrop = await provider.connection.requestAirdrop(
-        brand.publicKey, 
+        brand.publicKey,
         2 * LAMPORTS_PER_SOL
       );
       const oracleAirdrop = await provider.connection.requestAirdrop(
-        oracle.publicKey, 
+        oracle.publicKey,
         1 * LAMPORTS_PER_SOL
       );
 
       // Confirm all airdrops with proper error handling
-      console.log("Confirming airdrops...");
+      console.log("⏳ Confirmando airdrops...");
       await provider.connection.confirmTransaction(influencerAirdrop, "confirmed");
       await provider.connection.confirmTransaction(brandAirdrop, "confirmed");
       await provider.connection.confirmTransaction(oracleAirdrop, "confirmed");
@@ -117,15 +122,16 @@ describe("Solengage - BDD Tests", () => {
       // Verify balances
       const influencerBalance = await provider.connection.getBalance(influencer.publicKey);
       const brandBalance = await provider.connection.getBalance(brand.publicKey);
-      console.log("Influencer balance:", influencerBalance / LAMPORTS_PER_SOL, "SOL");
-      console.log("Brand balance:", brandBalance / LAMPORTS_PER_SOL, "SOL");
+      console.log("✅ Saldos após airdrop:");
+      console.log("   - Influencer:", influencerBalance / LAMPORTS_PER_SOL, "SOL");
+      console.log("   - Brand:", brandBalance / LAMPORTS_PER_SOL, "SOL");
 
       if (influencerBalance < LAMPORTS_PER_SOL || brandBalance < LAMPORTS_PER_SOL) {
         throw new Error("Insufficient SOL balance after airdrop");
       }
 
       // Create USDC mint (6 decimals) with explicit payer
-      console.log("Creating USDC mint...");
+      console.log("\n🪙 Criando USDC mint (6 decimals)...");
       usdcMint = await createMint(
         provider.connection,
         brand, // payer (has SOL)
@@ -133,17 +139,17 @@ describe("Solengage - BDD Tests", () => {
         null, // freeze authority
         6 // decimals
       );
-      console.log("USDC mint created:", usdcMint.toString());
+      console.log("✅ USDC mint criado:", usdcMint.toString());
 
       // Create token accounts
-      console.log("Creating token accounts...");
+      console.log("\n💼 Criando token accounts...");
       brandUsdcAccount = await createAccount(
         provider.connection,
         brand, // payer
         usdcMint,
         brand.publicKey // owner
       );
-      console.log("Brand USDC account created:", brandUsdcAccount.toString());
+      console.log("✅ Brand USDC account:", brandUsdcAccount.toString());
 
       influencerUsdcAccount = await createAccount(
         provider.connection,
@@ -151,19 +157,24 @@ describe("Solengage - BDD Tests", () => {
         usdcMint,
         influencer.publicKey // owner
       );
-      console.log("Influencer USDC account created:", influencerUsdcAccount.toString());
+      console.log("✅ Influencer USDC account:", influencerUsdcAccount.toString());
 
       // Mint USDC to brand account
-      console.log("Minting USDC to brand account...");
+      console.log("\n💵 Mintando USDC para brand account...");
+      const mintAmount = amountUsdc * 2; // Mint double the amount for testing
       const mintTx = await mintTo(
         provider.connection,
         brand, // fee payer
         usdcMint,
         brandUsdcAccount,
         brand, // mint authority (keypair, not publickey)
-        amountUsdc * 2 // Mint double the amount for testing
+        mintAmount
       );
-      console.log("USDC minted successfully, tx:", mintTx);
+      console.log("✅ USDC mintado com sucesso!");
+      console.log("   - Amount:", mintAmount / 1_000_000, "USDC");
+      console.log("   - Transaction:", mintTx);
+
+      console.log("\n✅ Setup completo!\n");
 
     } catch (error) {
       console.error("Error in beforeEach setup:", error);
@@ -175,14 +186,21 @@ describe("Solengage - BDD Tests", () => {
   describe("Feature: Criação de Campanhas", () => {
     describe("Cenário: Criação bem-sucedida de campanha", () => {
       it("Given um influenciador autenticado, And uma marca válida, And um oracle autorizado, And parâmetros válidos da campanha, When o influenciador cria uma nova campanha, Then a campanha deve ser criada com status 'Draft'", async () => {
+        console.log("\n========================================");
+        console.log("🧪 TESTE: Criação de Campanha");
+        console.log("========================================\n");
+
         // Given: Setup já feito no beforeEach
+        console.log("✅ GIVEN: Setup já realizado no beforeEach");
         // Verify all required accounts are properly initialized
         expect(influencer).to.not.be.undefined;
         expect(brand).to.not.be.undefined;
         expect(oracle).to.not.be.undefined;
         expect(usdcMint).to.not.be.undefined;
-        
+        console.log("   - Todas as contas estão inicializadas\n");
+
         // When: Criar a campanha
+        console.log("📋 WHEN: Criando campanha...");
         const [campaignPda] = PublicKey.findProgramAddressSync(
           [
             Buffer.from("campaign"),
@@ -194,6 +212,14 @@ describe("Solengage - BDD Tests", () => {
         );
 
           const brandName = "Test Brand";
+
+        console.log("   - Campaign PDA:", campaignPda.toString());
+        console.log("   - Nome:", campaignName);
+        console.log("   - Brand:", brandName);
+        console.log("   - Hashtag:", hashtag);
+        console.log("   - Target Likes:", targetLikes);
+        console.log("   - Amount:", amountUsdc / 1_000_000, "USDC");
+        console.log("   - Deadline:", new Date(deadline * 1000).toISOString());
 
         try {
           const tx = await program.methods
@@ -219,12 +245,15 @@ describe("Solengage - BDD Tests", () => {
             .signers([influencer])
             .rpc();
 
-          console.log("Campaign created with transaction:", tx);
+          console.log("✅ Campanha criada com sucesso!");
+          console.log("   - Transaction:", tx);
 
           // Then: Verificar se a campanha foi criada corretamente
+          console.log("\n🔍 THEN: Verificando estado da campanha...");
           const campaignAccount = await program.account.campaign.fetch(campaignPda);
 
-          // Verificar todos os campos
+          // Verificar todos os campos básicos
+          console.log("   ✓ Verificando campos básicos...");
           expect(campaignAccount.influencer.toString()).to.equal(influencer.publicKey.toString());
           expect(campaignAccount.brand.toString()).to.equal(brand.publicKey.toString());
           expect(campaignAccount.oracle.toString()).to.equal(oracle.publicKey.toString());
@@ -239,27 +268,40 @@ describe("Solengage - BDD Tests", () => {
           expect(campaignAccount.deadline.toNumber()).to.equal(deadline);
 
           // Verificar status inicial
+          console.log("   ✓ Verificando status inicial...");
           expect(campaignAccount.status).to.deep.equal({ draft: {} });
+          console.log("     - Status: Draft ✓");
 
           // Verificar métricas atuais zeradas
+          console.log("   ✓ Verificando métricas iniciais...");
           expect(campaignAccount.currentLikes.toNumber()).to.equal(0);
           expect(campaignAccount.currentComments.toNumber()).to.equal(0);
           expect(campaignAccount.currentViews.toNumber()).to.equal(0);
           expect(campaignAccount.currentShares.toNumber()).to.equal(0);
+          console.log("     - Todas as métricas zeradas ✓");
 
           // Verificar valor pago zerado
+          console.log("   ✓ Verificando valor pago...");
           expect(campaignAccount.paidAmount.toNumber()).to.equal(0);
+          console.log("     - Paid Amount: 0 USDC ✓");
 
           // Verificar todos os marcos de pagamento como false
+          console.log("   ✓ Verificando payment milestones...");
           expect(campaignAccount.paymentMilestones).to.deep.equal(
             Array(10).fill(false)
           );
+          console.log("     - Todos os 10 milestones em false ✓");
 
           // Verificar timestamps
+          console.log("   ✓ Verificando timestamps...");
           expect(campaignAccount.createdAt.toNumber()).to.be.greaterThan(0);
           expect(campaignAccount.lastUpdated.toNumber()).to.be.greaterThan(0);
+          console.log("     - Created At:", new Date(campaignAccount.createdAt.toNumber() * 1000).toISOString());
+          console.log("     - Last Updated:", new Date(campaignAccount.lastUpdated.toNumber() * 1000).toISOString());
+
+          console.log("\n✅ Teste de Criação de Campanha concluído com sucesso!\n");
         } catch (error) {
-          console.error("Error creating campaign:", error);
+          console.error("\n❌ Erro ao criar campanha:", error);
           throw error;
         }
       });
