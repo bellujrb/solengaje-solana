@@ -5,8 +5,11 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
+[programs.localnet]
+solengage = "2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5"
+
 [programs.devnet]
-solengage = "HtbFBjrFofeiVN3fhP8Urp1upxyRLHEVPcXRahJFtLgg"
+solengage = "2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5"
 
 [registry]
 url = "https://api.apr.dev"

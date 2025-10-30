@@ -26,6 +26,7 @@
 
 use anchor_lang::prelude::*;
 
+/// Declares the program ID for the Solengage program.
 declare_id!("2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5");
 
 pub mod errors;

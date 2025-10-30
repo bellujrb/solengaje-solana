@@ -1,3 +1,7 @@
+//! # Instructions Module
+//! 
+//! This module re-exports all the individual instruction modules.
+
 pub mod create_campaign;
 pub mod brand_pay_campaign;
 pub mod update_campaign_metrics;
