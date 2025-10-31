@@ -16,13 +16,13 @@ Solengage is a Solana program (smart contract) written in Rust using the Anchor 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    SOLENGAGE PROGRAM                         │
+│                    SOLENGAGE PROGRAM                        │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  Influencer  │  │    Brand     │  │   Oracle     │     │
-│  │   (Creator)  │  │   (Payer)    │  │ (Validator)  │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │  Influencer  │  │    Brand     │  │   Oracle     │       │
+│  │   (Creator)  │  │   (Payer)    │  │ (Validator)  │       │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
 │         │                  │                  │             │
 │         │   1. Create      │                  │             │
 │         │   Campaign       │                  │             │
@@ -35,16 +35,16 @@ Solengage is a Solana program (smart contract) written in Rust using the Anchor 
 │         │                     Metrics         │             │
 │         │◄────────────────────────────────────┘             │
 │         │                                                   │
-│         │  4. Auto Payments (10%, 20%... 100%)            │
+│         │  4. Auto Payments (10%, 20%... 100%)              │
 │         │                                                   │
-│  ┌──────▼────────────────────────────────────────────┐    │
-│  │           Campaign PDA (State Account)            │    │
-│  │  - Metrics: Likes, Views, Comments, Shares        │    │
-│  │  - Status: Draft → Active → Completed             │    │
-│  │  - Payment Milestones: [bool; 10]                 │    │
-│  │  - USDC Vault: Holds campaign budget              │    │
-│  └───────────────────────────────────────────────────┘    │
-│                                                              │
+│  ┌──────▼────────────────────────────────────────────┐      │
+│  │           Campaign PDA (State Account)            │      │
+│  │  - Metrics: Likes, Views, Comments, Shares        │      │
+│  │  - Status: Draft → Active → Completed             │      │
+│  │  - Payment Milestones: [bool; 10]                 │      │
+│  │  - USDC Vault: Holds campaign budget              │      │
+│  └───────────────────────────────────────────────────┘      │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
