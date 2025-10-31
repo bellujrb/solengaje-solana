@@ -16,10 +16,11 @@ Solengage connects influencers with brands for transparent, blockchain-verified 
 ## 📁 Project Structure
 
 ```
-influnest-sol/
+solengaje-solana/
 ├── programs/influnest/       # Anchor smart contract
 │   ├── src/lib.rs           # Campaign logic, payment automation
 │   └── Cargo.toml
+│   ├── tests           # Tests Program
 ├── frontend/                 # Next.js 15 + Privy
 │   ├── src/app/             # App router pages
 │   ├── package.json
