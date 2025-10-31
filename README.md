@@ -13,12 +13,6 @@ Solengage connects influencers with brands for transparent, blockchain-verified 
 - **🤖 Oracle Automation** - Supabase Edge Functions update metrics every 5 minutes
 - **🚀 Gasless Transactions** - Privy sponsors transaction fees for smooth UX
 
-### Test Contracts 
-
-This battery of tests validates the complete workflow of the Solengage (Anchor/Solana) program — from campaign creation to automatic milestone payments (5% each) in USDC.
-
-[Tests](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
-
 ## 📁 Project Structure
 
 ```
@@ -70,7 +64,10 @@ anchor build
 ### 3. Run Tests
 
 ```bash
+# Run all tests
 anchor test
+
+# For detailed test documentation, see the Smart Contract Tests section below
 ```
 
 ### 4. Setup Frontend
@@ -83,6 +80,33 @@ pnpm dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000)
+
+## 🧪 Program Solana Tests
+
+This battery of tests validates the complete workflow of the Solengage (Anchor/Solana) program — from campaign creation to automatic milestone payments (10% increments) in USDC.
+
+**Watch the tests in action:** [Test Suite Demo](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
+
+### Test Suite
+
+The test suite follows **BDD (Behavior-Driven Development)** methodology and covers the entire campaign lifecycle:
+
+1. **Create Campaign** - Validates campaign creation with `Draft` status
+2. **Activate Campaign** - Tests USDC deposit and status transition to `Active`
+3. **Update Metrics** - Oracle updates trigger first milestone payment (10%)
+4. **Micro Payments** - Progressive payments across multiple milestone updates
+5. **Fetch Campaign Info** - Campaign state queries and data retrieval
+6. **Complete Campaign** - Automatic closure at 100% with rent refund
+
+### Run Tests
+
+```bash
+# Run all tests
+anchor test
+
+# See detailed test docs
+cat program-sol/tests/README.md
+```
 
 ## 🏗️ Architecture
 
@@ -175,7 +199,7 @@ supabase functions deploy update-campaigns
 
 ## 🚢 Deployment
 
-1. **Smart Contract** → Solana Devnet/Mainnet
+1. **Smart Contract** → Solana Mainnet
 2. **Frontend** → Vercel
 3. **Database & Functions** → Supabase
 4. **Oracle** → Supabase pg_cron (5 min interval)
@@ -190,14 +214,13 @@ See [deployment checklist](./CLAUDE.md#deployment-checklist) for details.
 - [x] Instagram OAuth integration
 - [x] Automated oracle updates
 - [x] Milestone-based payments
+- [x] Mainnet deployment
 
 ### Phase 2 (Planned)
 - [ ] Apply Meta Business Partner
 - [ ] PIX on/off ramp (Brazil)
-- [ ] Mainnet deployment
 - [ ] Custom milestone percentages
-- [ ] Multi-platform (TikTok, YouTube)
-- [ ] Campaign analytics dashboard
+- [ ] Multi-platform (TikTok, YouTube, X)
 
 ## 📄 License
 
