@@ -85,7 +85,9 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 This battery of tests validates the complete workflow of the Solengage (Anchor/Solana) program — from campaign creation to automatic milestone payments (10% increments) in USDC.
 
-**Watch the tests in action:** [Test Suite Demo](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
+**Watch the tests in action:** https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a
+
+[Tests](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
 
 ### Test Suite
 
