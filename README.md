@@ -1,8 +1,8 @@
-# Influnest
+# Solengage
 
 > Decentralized influencer marketing platform on Solana with automated milestone-based payments
 
-Influnest connects influencers with brands for transparent, blockchain-verified Instagram marketing campaigns. Smart contracts ensure automatic payment distribution based on real engagement metrics.
+Solengage connects influencers with brands for transparent, blockchain-verified Instagram marketing campaigns. Smart contracts ensure automatic payment distribution based on real engagement metrics.
 
 ## 🎯 Features
 
@@ -12,6 +12,12 @@ Influnest connects influencers with brands for transparent, blockchain-verified 
 - **⛓️ Solana Smart Contracts** - Trustless campaign management with Anchor
 - **🤖 Oracle Automation** - Supabase Edge Functions update metrics every 5 minutes
 - **🚀 Gasless Transactions** - Privy sponsors transaction fees for smooth UX
+
+### Test Contracts 
+
+This battery of tests validates the complete workflow of the Solengage (Anchor/Solana) program — from campaign creation to automatic milestone payments (10% each) in USDC.
+
+[Tests ON](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
 
 ## 📁 Project Structure
 
@@ -186,6 +192,7 @@ See [deployment checklist](./CLAUDE.md#deployment-checklist) for details.
 - [x] Milestone-based payments
 
 ### Phase 2 (Planned)
+- [ ] Apply Meta Business Partner
 - [ ] PIX on/off ramp (Brazil)
 - [ ] Mainnet deployment
 - [ ] Custom milestone percentages
