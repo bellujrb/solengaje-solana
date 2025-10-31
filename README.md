@@ -15,9 +15,9 @@ Solengage connects influencers with brands for transparent, blockchain-verified 
 
 ### Test Contracts 
 
-This battery of tests validates the complete workflow of the Solengage (Anchor/Solana) program — from campaign creation to automatic milestone payments (10% each) in USDC.
+This battery of tests validates the complete workflow of the Solengage (Anchor/Solana) program — from campaign creation to automatic milestone payments (5% each) in USDC.
 
-[Tests ON](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
+[Tests](https://github.com/user-attachments/assets/27737117-b9c9-46df-b4ec-edc056377c2a)
 
 ## 📁 Project Structure
 
