@@ -221,9 +221,9 @@ See [deployment checklist](./CLAUDE.md#deployment-checklist) for details.
 - [x] Instagram OAuth integration
 - [x] Automated oracle updates
 - [x] Milestone-based payments
-- [x] Mainnet deployment
 
 ### Phase 2 (Planned)
+- [ ] Mainnet deployment
 - [ ] Apply Meta Business Partner
 - [ ] PIX on/off ramp (Brazil)
 - [ ] Custom milestone percentages
