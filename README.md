@@ -112,6 +112,8 @@ cat program-sol/tests/README.md
 
 ## 🏗️ Architecture
 
+![Image](https://github.com/user-attachments/assets/520814bb-3248-420d-942e-2f48a13e317c)
+
 ### Smart Contract Flow
 
 1. **Create Campaign** - Influencer sets targets (likes, comments, views, shares) and USDC amount
