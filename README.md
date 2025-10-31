@@ -4,6 +4,8 @@
 
 Solengage connects influencers with brands for transparent, blockchain-verified Instagram marketing campaigns. Smart contracts ensure automatic payment distribution based on real engagement metrics.
 
+**📦 Deployed Program:** [View on Solana Explorer (Devnet)](https://explorer.solana.com/address/2e3n681eydMY7t35bHD53eLfaifH3yQzQEsmgfhKV7E5?cluster=devnet)
+
 ## 🎯 Features
 
 - **🔐 Privy Authentication** - Embedded Solana wallets with social login (no wallet installation needed)
